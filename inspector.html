@@ -110,7 +110,8 @@ textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(29,122,90,.0
 #bg-slides{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
 .bg-slide{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0;transition:opacity 1.8s ease-in-out;filter:brightness(0.75);}
 .bg-slide.active{opacity:1;}
-.bg-slide.leaving{opacity:0;transition:opacity 1.8s ease-in-out;}
+.bg-slide.leaving{opacity:0;transition:opacity 1.8s ease-in-out;z-index:0;}
+.bg-slide.active{opacity:1;z-index:1;}
 #scr-sel,#scr-survey,#scr-result{position:relative;z-index:1;}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -499,7 +500,7 @@ document.addEventListener("click",function startAudio(){
   var c=document.getElementById("bg-slides");
   imgs.forEach(function(url,i){var d=document.createElement("div");d.className="bg-slide"+(i===0?" active":"");d.style.backgroundImage="url("+url+")";c.appendChild(d);});
   var cur=0;
-  setInterval(function(){var s=c.querySelectorAll(".bg-slide");s[cur].classList.remove("active");s[cur].classList.add("leaving");setTimeout(function(){s[cur].classList.remove("leaving");},1800);cur=(cur+1)%s.length;s[cur].classList.add("active");},5000);
+  setInterval(function(){var s=c.querySelectorAll(".bg-slide");var prev=cur;cur=(cur+1)%s.length;s[cur].classList.add("active");setTimeout(function(){s[prev].classList.remove("active");s[prev].classList.add("leaving");setTimeout(function(){s[prev].classList.remove("leaving");},1800);},100);},5000);
 })();
 
 renderSelector();
