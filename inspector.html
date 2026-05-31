@@ -9,7 +9,7 @@
 --green:#16a34a;--green-bg:#f0fdf4;--red:#dc2626;--red-bg:#fef2f2;--amber:#d97706;--amber-bg:#fffbeb;
 --accent:#1d7a5a;--accent-light:#e6f7f2;--hero:linear-gradient(135deg,#0f4c3a,#1d7a5a,#22a67a);}
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;font-size:14px;}
+body{background:#000;color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;font-size:14px;}
 .topbar{background:linear-gradient(135deg,#0a2d22,#0f4c3a,#1a5c48);padding:0 20px;display:flex;align-items:center;height:54px;gap:12px;position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(0,0,0,.3);}
 .logo-icon{width:36px;height:36px;border-radius:9px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;cursor:pointer;}
 .logo-text .t1{font-size:14px;font-weight:800;color:#fff;}
@@ -24,7 +24,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .sel-hero{background:var(--hero);border-radius:18px;padding:28px;margin-bottom:24px;text-align:center;}
 .sel-hero h1{color:#fff;font-size:20px;font-weight:800;margin-bottom:6px;}
 .sel-hero p{color:rgba(255,255,255,.7);font-size:13px;}
-.sel-lbl{font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px;}
+.sel-lbl{font-size:14px;font-weight:700;color:#fff;margin-bottom:14px;text-shadow:0 1px 4px rgba(0,0,0,0.8);}
 .area-btn{display:flex;align-items:center;gap:14px;width:100%;padding:14px 18px;background:var(--white);border:1.5px solid var(--border);border-radius:13px;margin-bottom:9px;cursor:pointer;text-align:left;transition:all .15s;font-family:inherit;}
 .area-btn:hover{border-color:var(--accent);box-shadow:0 4px 16px rgba(29,122,90,.12);transform:translateY(-1px);}
 .area-icon{font-size:26px;width:40px;text-align:center;}
@@ -107,11 +107,22 @@ textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(29,122,90,.0
 .inp:focus{border-color:var(--accent);}
 .err{color:var(--red);font-size:12px;margin-bottom:10px;display:none;}
 @media(max-width:480px){.opts{grid-template-columns:1fr;}.nc-row{grid-template-columns:1fr;}}
+#bg-slides{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+.bg-slide{position:absolute;inset:0;background-size:cover;background-position:center;opacity:0;transition:opacity 1.8s ease-in-out;filter:brightness(0.75);}
+.bg-slide.active{opacity:1;}
+.bg-slide.leaving{opacity:0;transition:opacity 1.8s ease-in-out;}
+#scr-sel,#scr-survey,#scr-result{position:relative;z-index:1;}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 </head>
 <body>
+<div id="bg-slides"></div>
+<!-- Audio instrumental -->
+<audio id="bg-music" loop autoplay>
+  <source src="musica.mp3" type="audio/mpeg">
+</audio>
+<div id="music-btn" onclick="toggleMusic()" style="position:fixed;bottom:20px;right:20px;z-index:999;background:rgba(255,255,255,0.2);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.3);border-radius:50px;padding:8px 16px;cursor:pointer;color:#fff;font-size:13px;font-weight:600;display:flex;align-items:center;gap:7px;box-shadow:0 2px 12px rgba(0,0,0,0.3);">🎵 <span id="music-lbl">Música</span></div>
 
 <div class="topbar">
   <div class="logo-icon" onclick="logoClick()" id="logo-btn">🛡️</div>
@@ -134,7 +145,7 @@ textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(29,122,90,.0
     </div>
     <div class="sel-lbl">¿En qué área estás?</div>
     <div id="area-list"></div>
-    <div style="margin-top:20px;padding:14px;background:var(--white);border-radius:12px;border:1px solid var(--border);text-align:center;font-size:11px;color:var(--muted);">
+    <div style="margin-top:20px;padding:14px;background:rgba(255,255,255,0.85);border-radius:12px;border:1px solid var(--border);text-align:center;font-size:11px;color:var(--muted);">
       🕒 <strong>Fecha:</strong> <span id="fecha-hoy"></span>
     </div>
   </div>
@@ -469,6 +480,27 @@ function checkAdmin(){
   else{document.getElementById('admin-err').style.display='block';}
 }
 function closeAdmin(){document.getElementById('ov-admin').classList.remove('open');document.getElementById('admin-pass').value='';document.getElementById('admin-err').style.display='none';}
+function toggleMusic(){
+  var a=document.getElementById("bg-music");
+  var l=document.getElementById("music-lbl");
+  if(a.paused){a.play();l.textContent="Música";}else{a.pause();l.textContent="Silencio";}
+}
+// Iniciar música al primer clic del usuario (política del navegador)
+document.addEventListener("click",function startAudio(){
+  var a=document.getElementById("bg-music");
+  if(a.paused)a.play();
+  document.removeEventListener("click",startAudio);
+},{once:true});
+
+// 25002500 Fondo con fotos rotativas 25002500
+// Fotos de fondo rotativas
+(function(){
+  var imgs=["https://images.unsplash.com/photo-1600891964599-f61ba0e24092?w=1920&q=90&fit=crop","https://images.unsplash.com/photo-1631549916768-4119b2e5f926?w=1920&q=90&fit=crop","https://images.unsplash.com/photo-1576867757603-05b134ebc379?w=1920&q=90&fit=crop","https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1920&q=90&fit=crop","https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=1920&q=90&fit=crop","https://images.unsplash.com/photo-1542838132-92c53300491e?w=1920&q=90&fit=crop","https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=1920&q=90&fit=crop"];
+  var c=document.getElementById("bg-slides");
+  imgs.forEach(function(url,i){var d=document.createElement("div");d.className="bg-slide"+(i===0?" active":"");d.style.backgroundImage="url("+url+")";c.appendChild(d);});
+  var cur=0;
+  setInterval(function(){var s=c.querySelectorAll(".bg-slide");s[cur].classList.remove("active");s[cur].classList.add("leaving");setTimeout(function(){s[cur].classList.remove("leaving");},1800);cur=(cur+1)%s.length;s[cur].classList.add("active");},5000);
+})();
 
 renderSelector();
 </script>
