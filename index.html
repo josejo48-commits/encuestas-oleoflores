@@ -463,6 +463,7 @@ body.is-admin hr.admin-only { display: block !important; }
   <div class="nav-item admin-only" onclick="showPage('admin')"><span class="nav-icon">🛡</span> Todas las inspecciones</div>
 
   <hr class="sidebar-divider">
+
   <div class="nav-section">Acciones</div>
   <div class="nav-item" onclick="openAddArea()"><span class="nav-icon">➕</span> Nueva Área</div>
   <div class="nav-item" onclick="openAddPregunta()"><span class="nav-icon">❓</span> Nueva Pregunta</div>
@@ -484,7 +485,9 @@ body.is-admin hr.admin-only { display: block !important; }
     </div>
   </div>
 
-  <div class="hero-card">
+  
+
+<div class="hero-card">
     <div class="hero-inner">
       <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;">
         <div style="width:48px;height:48px;background:rgba(255,255,255,0.18);border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;">🛡️</div>
@@ -699,6 +702,8 @@ body.is-admin hr.admin-only { display: block !important; }
     </div>
   </div>
 </div>
+
+
 
 </div><!-- /main -->
 </div><!-- /layout -->
@@ -1004,10 +1009,37 @@ const firebaseConfig = {
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// ===================== ANSWERS PERSISTENCE (local mientras se llena) =====================
+
+
+
+// Firebase replaces sbFetch — no REST calls needed
+
+// Subir foto al Storage de Supabase, devuelve URL pública
+async function subirFoto(inspeccionId, preguntaId, base64DataUrl) {
+  const blob = await (await fetch(base64DataUrl)).blob();
+  const ext  = blob.type.includes('png') ? 'png' : 'jpg';
+  const path = `${inspeccionId}/${preguntaId}_${Date.now()}.${ext}`;
+  const res  = await fetch(`${SB_URL}/storage/v1/object/${SB_BUCKET}/${path}`, {
+    method: 'POST',
+    headers: {
+      'apikey': SB_KEY,
+      'Authorization': 'Bearer ' + SB_KEY,
+      'Content-Type': blob.type,
+      'x-upsert': 'true'
+    },
+    body: blob
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return `${SB_URL}/storage/v1/object/public/${SB_BUCKET}/${path}`;
+}
+
+// ===================== ANSWERS PERSISTENCE =====================
+// Respuestas → localStorage (caché local) + Supabase al enviar
+// Fotos → Supabase Storage (URL pública permanente)
 const LS_KEY = 'inocuidad_answers_v4';
 
 function saveAnswers() {
+  // Guardar localmente (caché mientras se llena la encuesta)
   try {
     const sinFotos = {};
     Object.keys(ANSWERS).forEach(aId => {
@@ -1029,51 +1061,67 @@ function loadAnswers() {
   return {};
 }
 
-// ── Enviar inspección completa a Firebase ──────────────────────────
+// ── Enviar inspección completa a Supabase ──────────────────────────
 async function enviarInspeccionASupabase(area) {
   if (!SESSION) return;
   const ans = ANSWERS[area.id] || {};
   const ok  = Object.values(ans).filter(x => x.value === 'ok').length;
-  const nc  = Object.values(ans).filter(x => x.value === 'nc').length;
-  const bad = Object.values(ans).filter(x => x.value === 'bad').length;
   const pct = area.preguntas.length > 0 ? Math.round((ok / area.preguntas.length) * 100) : 0;
 
-  toast('☁️ Enviando a Firebase...');
+  toast('☁️ Enviando a Supabase...');
 
   try {
-    const inspeccionRef = db.ref('inspecciones').push();
-    const inspeccionId = inspeccionRef.key;
-    const respuestas = {};
+    // 1. Crear registro de inspección
+    const [inspeccion] = await sbFetch('/rest/v1/inspecciones?select=id', {
+      method: 'POST',
+      headers: { 'Prefer': 'return=representation' },
+      body: JSON.stringify({
+        area_id:           area.id,
+        area_nombre:       area.nombre,
+        inspector_nombre:  'Anónimo',
+        inspector_user:    'anonimo',
+        pct_cumplimiento:  pct
+      })
+    });
+    const inspeccionId = inspeccion.id;
+
+    // 2. Guardar cada respuesta + subir fotos
     for (const q of area.preguntas) {
       const r = ans[q.id];
       if (!r) continue;
-      respuestas[q.id] = {
-        pregunta_texto: q.texto,
-        valor:          r.value || null,
-        observacion:    r.obs   || null,
-        accion:         r.accion|| null,
-        categoria:      q.categoria,
-        nivel:          q.nivel,
-        fotos:          r.fotos || []
-      };
-    }
-    await inspeccionRef.set({
-      id:               inspeccionId,
-      area_id:          area.id,
-      area_nombre:      area.nombre,
-      area_icono:       area.icono || '',
-      nivel:            area.nivel,
-      inspector_nombre: SESSION.nombre || 'Inspector',
-      inspector_user:   SESSION.user   || 'anonimo',
-      pct_cumplimiento: pct,
-      ok, nc, bad,
-      total_preguntas:  area.preguntas.length,
-      respondidas:      Object.keys(ans).length,
-      created_at:       new Date().toISOString(),
-      fecha_display:    new Date().toLocaleString('es-CO'),
-      respuestas
-    });
 
+      // Insertar respuesta
+      await sbFetch('/rest/v1/respuestas', {
+        method: 'POST',
+        headers: { 'Prefer': 'return=minimal' },
+        body: JSON.stringify({
+          inspeccion_id:  inspeccionId,
+          pregunta_id:    q.id,
+          pregunta_texto: q.texto,
+          valor:          r.value || null,
+          observacion:    r.obs   || null,
+          accion:         r.accion|| null,
+          categoria:      q.categoria,
+          nivel:          q.nivel
+        })
+      });
+
+      // Subir fotos si existen
+      if (r.fotos && r.fotos.length) {
+        for (const fotoB64 of r.fotos) {
+          try {
+            const url = await subirFoto(inspeccionId, q.id, fotoB64);
+            await sbFetch('/rest/v1/fotos', {
+              method: 'POST',
+              headers: { 'Prefer': 'return=minimal' },
+              body: JSON.stringify({ inspeccion_id: inspeccionId, pregunta_id: q.id, url })
+            });
+          } catch(fe) { console.error('[FOTO] Error subiendo foto:', fe); }
+        }
+      }
+    }
+
+    // 3. Limpiar caché local de esta área
     const sinFotos = {};
     Object.keys(ANSWERS).forEach(aId => {
       sinFotos[aId] = {};
@@ -1084,17 +1132,18 @@ async function enviarInspeccionASupabase(area) {
     });
     localStorage.setItem(LS_KEY, JSON.stringify(sinFotos));
 
-    toast('✅ Inspección guardada en Firebase ☁️');
-    console.log('[FIREBASE] Inspección enviada:', inspeccionId);
+    toast('✅ Inspección guardada en la nube ☁️');
+    console.log('[SUPABASE] Inspección enviada:', inspeccionId);
 
   } catch(e) {
-    console.error('[FIREBASE] ERROR:', e);
-    toast('⚠️ Error al enviar: ' + e.message);
+    console.error('[SUPABASE] ERROR:', e);
+    toast('⚠️ Error al enviar a Supabase: ' + e.message);
   }
 }
 
 async function loadFotosFromIDB() {
-  console.log('[INFO] Fotos se guardan en Firebase al enviar la inspección');
+  // Ya no se usa IndexedDB — las fotos van directo a Supabase al enviar
+  console.log('[INFO] Fotos se guardan en Supabase Storage al enviar la inspección');
 }
 
 // ===================== INIT =====================
@@ -1821,6 +1870,7 @@ function showPage(id) {
   const tabs = document.querySelectorAll('.tab-pill');
   if(tabMap[id]!==undefined) tabs[tabMap[id]].classList.add('active');
   if(id==='admin') { document.getElementById('tab-admin') && document.getElementById('tab-admin').classList.add('active'); cargarInspecciones(); }
+  if(id==='cap-quiz') initQuiz();
   if(id==='consolidado') renderConsolidado();
   if(id==='dashboard') renderDashboard();
   if(id==='areas') renderAreasList();
@@ -2442,8 +2492,8 @@ document.addEventListener('change', function(e) {
 // ═══════════════════════════════════════════════════════════════
 
 let _allInspecciones = [];
-let _firebaseListener = null;
 
+let _firebaseListener = null;
 function cargarInspecciones() {
   if (!SESSION || SESSION.rol !== 'admin') return;
   document.getElementById('admin-loading').style.display = 'block';
@@ -2451,21 +2501,11 @@ function cargarInspecciones() {
   document.getElementById('admin-error').style.display = 'none';
   document.getElementById('admin-table-wrap').style.display = 'none';
 
-  // Desuscribir listener anterior si existe
-  if (_firebaseListener) {
-    db.ref('inspecciones').off('value', _firebaseListener);
-  }
+  if (_firebaseListener) db.ref('inspecciones').off('value', _firebaseListener);
 
   _firebaseListener = db.ref('inspecciones').on('value', (snapshot) => {
     const data = snapshot.val();
-    if (!data) {
-      _allInspecciones = [];
-    } else {
-      // Convertir objeto Firebase a array, ordenado por fecha descendente
-      _allInspecciones = Object.values(data).sort((a, b) =>
-        new Date(b.created_at) - new Date(a.created_at)
-      );
-    }
+    _allInspecciones = data ? Object.values(data).sort((a,b) => new Date(b.created_at) - new Date(a.created_at)) : [];
 
     // Poblar filtro de áreas
     const areas = [...new Set(_allInspecciones.map(i => i.area_nombre))].sort();
@@ -2480,7 +2520,7 @@ function cargarInspecciones() {
   }, (e) => {
     document.getElementById('admin-loading').style.display = 'none';
     document.getElementById('admin-error').style.display = 'block';
-    document.getElementById('admin-error').textContent = '⚠️ Error al cargar desde Firebase: ' + e.message;
+    document.getElementById('admin-error').textContent = '⚠️ Error Firebase: ' + e.message;
   });
 }
 
@@ -2579,19 +2619,12 @@ async function verDetalleInspeccion(id) {
 
   document.getElementById('detalle-title').textContent = `${icono} ${insp.area_nombre} — Detalle`;
 
-  // Las respuestas ya vienen en el objeto de Firebase
+  // Respuestas ya vienen en Firebase
   const respObj = insp.respuestas || {};
   const respuestas = Object.entries(respObj).map(([qid, r]) => ({
-    pregunta_id: qid,
-    pregunta_texto: r.pregunta_texto,
-    valor: r.valor,
-    observacion: r.observacion,
-    accion: r.accion,
-    categoria: r.categoria,
-    nivel: r.nivel,
-    fotos: r.fotos || []
+    pregunta_id: qid, pregunta_texto: r.pregunta_texto, valor: r.valor,
+    observacion: r.observacion, accion: r.accion, categoria: r.categoria, fotos: r.fotos || []
   }));
-
   const ok  = respuestas.filter(r => r.valor === 'ok').length;
   const nc  = respuestas.filter(r => r.valor === 'nc').length;
   const bad = respuestas.filter(r => r.valor === 'bad').length;
@@ -2599,7 +2632,6 @@ async function verDetalleInspeccion(id) {
   const body = `
     <div style="background:var(--hero);border-radius:12px;padding:20px;margin-bottom:20px;color:#fff;">
       <div style="font-size:12px;opacity:0.7;margin-bottom:4px;">${fecha}</div>
-      <div style="font-size:14px;opacity:0.8;margin-bottom:4px;">👤 ${insp.inspector_nombre || 'Inspector'}</div>
       <div style="font-size:20px;font-weight:800;margin-bottom:12px;">${icono} ${insp.area_nombre}</div>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;">
         <div style="background:rgba(255,255,255,0.12);border-radius:8px;padding:10px;text-align:center;">
@@ -2625,6 +2657,7 @@ async function verDetalleInspeccion(id) {
       respuestas.map(r => {
         const valLabel = r.valor==='ok'?'✅ Cumple':r.valor==='nc'?'⚠️ Parcial':r.valor==='bad'?'❌ No cumple':'➖ No aplica';
         const valColor = r.valor==='ok'?'#16a34a':r.valor==='nc'?'#d97706':r.valor==='bad'?'#dc2626':'#94a3b8';
+        const fotosPregunta = r.fotos || [];
         return `<div style="border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;">
           <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;">
             <span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:100px;background:${valColor}20;color:${valColor};white-space:nowrap;">${valLabel}</span>
@@ -2635,7 +2668,7 @@ async function verDetalleInspeccion(id) {
           </div>
           ${r.observacion?`<div style="background:#fffbeb;border-radius:7px;padding:8px 10px;font-size:12px;color:#92400e;margin-bottom:6px;">📝 ${r.observacion}</div>`:''}
           ${r.accion?`<div style="background:#f0fdf4;border-radius:7px;padding:8px 10px;font-size:12px;color:#14532d;">✅ Acción: ${r.accion}</div>`:''}
-          ${r.fotos && r.fotos.length ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;">${r.fotos.map(f=>`<img src="${f}" style="width:72px;height:72px;border-radius:8px;object-fit:cover;border:1px solid var(--border);">`).join('')}</div>` : ''}
+          ${fotosPregunta.length ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;">${fotosPregunta.map(f=>`<img src="${f}" style="width:72px;height:72px;border-radius:8px;object-fit:cover;border:1px solid var(--border);">`).join('')}</div>` : ''}
         </div>`;
       }).join('')
     }
@@ -2769,6 +2802,93 @@ window.addEventListener('beforeunload', () => {
     localStorage.setItem(LS_KEY, JSON.stringify(sinFotos));
   } catch(e) {}
 });
+
+// ===================== QUIZ DE INOCUIDAD =====================
+const QUIZ_PREGUNTAS = [
+  { p:'¿Cuál es la temperatura mínima para cocinar carne de cerdo?', ops:['60°C','71°C','82°C','55°C'], c:1, exp:'La carne de cerdo debe cocinarse a mínimo 71°C para eliminar patógenos como Salmonella y Triquina.' },
+  { p:'¿Qué significa BPM en inocuidad alimentaria?', ops:['Buenas Prácticas de Manufactura','Bacterias Por Minuto','Buenas Prácticas de Manipulación','Base de Producción Mejorada'], c:0, exp:'BPM = Buenas Prácticas de Manufactura. Garantizan que los alimentos se produzcan en condiciones higiénicas.' },
+  { p:'¿Cada cuándo debe lavarse las manos el personal que manipula alimentos?', ops:['Solo al inicio del turno','Cada 2 horas','Cada vez que cambia de actividad','Una vez por hora'], c:2, exp:'El lavado debe hacerse cada vez que se cambia de actividad o se toca una superficie potencialmente contaminada.' },
+  { p:'¿Cuál es el rango de temperatura de la "zona de peligro"?', ops:['0°C a 5°C','5°C a 60°C','60°C a 100°C','-18°C a 0°C'], c:1, exp:'Entre 5°C y 60°C las bacterias se multiplican rápidamente. Los alimentos no deben estar en esta zona más de 2 horas.' },
+  { p:'¿Qué significa HACCP?', ops:['Higiene Alimentaria y Control de Calidad','Análisis de Peligros y Puntos Críticos de Control','Sistema de Control de Alimentos Certificados','Higiene y Control de Contaminación'], c:1, exp:'HACCP identifica, evalúa y controla los peligros significativos para la inocuidad de los alimentos.' },
+  { p:'¿Cuál representa contaminación cruzada?', ops:['Usar termómetro calibrado','Cortar verduras con el cuchillo de carne cruda sin lavar','Almacenar en recipientes tapados','Refrigerar a menos de 4°C'], c:1, exp:'La contaminación cruzada ocurre cuando microorganismos se transfieren de un alimento a otro mediante utensilios.' },
+  { p:'¿Qué EPP es obligatorio en áreas de producción de alimentos?', ops:['Solo guantes','Cofia, tapabocas, guantes y ropa limpia','Solo delantal','Guantes y gafas'], c:1, exp:'El EPP completo incluye cofia, tapabocas, guantes y uniforme limpio para evitar contaminar el producto.' },
+  { p:'¿Cuántos principios tiene el sistema HACCP?', ops:['5','7','10','3'], c:1, exp:'El HACCP tiene 7 principios: análisis de peligros, PCC, límites críticos, monitoreo, acciones correctivas, verificación y documentación.' },
+  { p:'¿A qué temperatura deben mantenerse los alimentos fríos?', ops:['Menos de 10°C','Menos de 4°C','Entre 5°C y 10°C','Menos de 15°C'], c:1, exp:'Los alimentos fríos deben mantenerse por debajo de 4°C para inhibir el crecimiento bacteriano.' },
+  { p:'¿Qué es un Punto Crítico de Control (PCC)?', ops:['Control de calidad del producto terminado','Etapa donde se puede controlar un peligro','El final de la línea de producción','Área de insumos químicos'], c:1, exp:'Un PCC es una etapa donde se aplica control para prevenir, eliminar o reducir un peligro a niveles aceptables.' },
+];
+let quizState = { cur:0, score:0, answered:false, finished:false, list:[] };
+function initQuiz(){
+  quizState = { cur:0, score:0, answered:false, finished:false, list:[...QUIZ_PREGUNTAS].sort(()=>Math.random()-.5) };
+  renderQuiz();
+}
+function renderQuiz(){
+  const c=document.getElementById('quiz-container'); if(!c)return;
+  if(quizState.finished){
+    const pct=Math.round((quizState.score/quizState.list.length)*100);
+    const emoji=pct>=80?'🏆':pct>=60?'👍':'📚';
+    const msg=pct>=80?'¡Excelente dominio de inocuidad!':pct>=60?'¡Buen resultado, sigue aprendiendo!':'Repasa los conceptos de inocuidad alimentaria';
+    const col=pct>=80?'#16a34a':pct>=60?'#d97706':'#dc2626';
+    c.innerHTML=`<div style="text-align:center;background:var(--hero);border-radius:18px;padding:40px 24px;color:#fff;margin-bottom:20px;">
+      <div style="font-size:64px;margin-bottom:12px;">${emoji}</div>
+      <div style="font-size:32px;font-weight:800;margin-bottom:6px;">${pct}%</div>
+      <div style="font-size:15px;margin-bottom:4px;">${quizState.score} de ${quizState.list.length} correctas</div>
+      <div style="font-size:14px;opacity:.85;">${msg}</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:14px;padding:18px;text-align:center;">
+        <div style="font-size:36px;font-weight:800;color:#16a34a;">${quizState.score}</div>
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;">Correctas</div>
+      </div>
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:14px;padding:18px;text-align:center;">
+        <div style="font-size:36px;font-weight:800;color:#dc2626;">${quizState.list.length-quizState.score}</div>
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;">Incorrectas</div>
+      </div>
+    </div>
+    <button onclick="initQuiz()" style="width:100%;background:var(--hero);color:#fff;border:none;border-radius:11px;padding:14px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">🔄 Jugar de nuevo</button>`;
+    return;
+  }
+  const q=quizState.list[quizState.cur], tot=quizState.list.length, pct=Math.round((quizState.cur/tot)*100);
+  c.innerHTML=`<div style="background:var(--white);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:14px;">
+    <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+      <span style="font-size:12px;font-weight:700;color:var(--muted);">Pregunta ${quizState.cur+1} de ${tot}</span>
+      <span style="font-size:12px;font-weight:700;color:var(--accent);">✅ ${quizState.score} correctas</span>
+    </div>
+    <div style="height:6px;background:#f1f5f9;border-radius:100px;overflow:hidden;margin-bottom:16px;">
+      <div style="height:100%;width:${pct}%;background:var(--hero);border-radius:100px;transition:width .4s;"></div>
+    </div>
+    <div style="font-size:16px;font-weight:700;color:var(--text);line-height:1.5;margin-bottom:20px;">🧠 ${q.p}</div>
+    <div style="display:flex;flex-direction:column;gap:10px;" id="quiz-opts">
+      ${q.ops.map((op,i)=>`<button onclick="responder(${i})" id="opt-${i}" style="background:#f8fafc;border:1.5px solid var(--border);border-radius:10px;padding:13px 16px;font-size:14px;font-weight:500;cursor:pointer;text-align:left;color:var(--text);transition:all .15s;font-family:inherit;display:flex;align-items:center;gap:10px;">
+        <span style="width:28px;height:28px;border-radius:50%;background:var(--accent-light);color:var(--accent);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${String.fromCharCode(65+i)}</span>${op}</button>`).join('')}
+    </div>
+    <div id="quiz-feedback" style="display:none;margin-top:16px;"></div>
+  </div>
+  <button id="btn-sig" onclick="quizSig()" style="display:none;width:100%;background:var(--hero);color:#fff;border:none;border-radius:11px;padding:14px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">${quizState.cur+1<tot?'→ Siguiente pregunta':'🏁 Ver resultados'}</button>`;
+}
+function responder(idx){
+  if(quizState.answered)return; quizState.answered=true;
+  const q=quizState.list[quizState.cur];
+  if(idx===q.c) quizState.score++;
+  q.ops.forEach((_,i)=>{
+    const btn=document.getElementById('opt-'+i); if(!btn)return;
+    btn.style.cursor='default';
+    if(i===q.c){btn.style.background='#f0fdf4';btn.style.borderColor='#16a34a';btn.style.color='#16a34a';btn.style.fontWeight='700';}
+    else if(i===idx){btn.style.background='#fef2f2';btn.style.borderColor='#dc2626';btn.style.color='#dc2626';}
+  });
+  const fb=document.getElementById('quiz-feedback');
+  fb.style.display='block';
+  fb.innerHTML=`<div style="background:${idx===q.c?'#f0fdf4':'#fef2f2'};border:1px solid ${idx===q.c?'#bbf7d0':'#fecaca'};border-radius:10px;padding:14px;">
+    <div style="font-size:15px;font-weight:800;color:${idx===q.c?'#16a34a':'#dc2626'};margin-bottom:6px;">${idx===q.c?'✅ ¡Correcto!':'❌ Incorrecto'}</div>
+    <div style="font-size:13px;color:var(--text);line-height:1.5;">💡 ${q.exp}</div>
+  </div>`;
+  document.getElementById('btn-sig').style.display='block';
+}
+function quizSig(){
+  quizState.cur++; quizState.answered=false;
+  if(quizState.cur>=quizState.list.length) quizState.finished=true;
+  renderQuiz();
+}
+
 </script>
 
 <audio id="login-audio" loop preload="auto" muted>
