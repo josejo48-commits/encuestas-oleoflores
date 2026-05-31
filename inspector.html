@@ -628,9 +628,11 @@ function showCap(tipo){
   window.scrollTo(0,0);
 }
 function hideCap(){
-  // Detener podcast si está sonando
+  // Detener podcast y video si están sonando
   const audio = document.querySelector('#scr-podcast audio');
   if(audio){ audio.pause(); audio.currentTime=0; }
+  const video = document.querySelector('#scr-video video');
+  if(video){ video.pause(); video.currentTime=0; }
   CAP_SCREENS.forEach(s=>{
     const el=document.getElementById(s);
     if(el) el.style.display='none';
