@@ -131,11 +131,11 @@ textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(29,122,90,.0
     <div class="t1">OLEOFLORES</div>
     <div class="t2">Inocuidad · Inspecciones</div>
   </div>
-  <div class="topbar-right" style="display:flex;align-items:center;gap:8px;margin-left:auto;">
+  <div class="topbar-right">
     <button class="chip" id="chip-back" onclick="volverSelector()">← Cambiar área</button>
-    <button onclick="toggleMusic()" style="background:#fff;border:none;border-radius:50%;width:32px;height:32px;color:#0f4c3a;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0;" id="music-btn"><span id="music-lbl">🎵</span></button>
   </div>
 </div>
+<div onclick="toggleMusic()" id="music-btn" style="position:fixed;bottom:24px;right:20px;z-index:999;background:#fff;border-radius:50px;width:52px;height:52px;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;box-shadow:0 3px 14px rgba(0,0,0,0.35);"><span id="music-lbl">🎵</span></div>
 
 <!-- SELECTOR -->
 <div id="scr-sel">
