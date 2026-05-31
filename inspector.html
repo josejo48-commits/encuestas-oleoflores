@@ -856,8 +856,9 @@ function lanzarConfetti(){
         p.wobble += 0.03;
         p.x += p.vx + Math.sin(p.wobble)*0.5;
         p.y += p.vy;
+        if(p.y + p.r*2 < 0) p.alpha = 0; // desaparece al salir por arriba
         if(frame > 150) p.alpha -= 0.008;
-        drawBalloon(ctx, p.x, p.y, p.r, p.color, p.alpha);
+        if(p.alpha > 0) drawBalloon(ctx, p.x, p.y, p.r, p.color, p.alpha);
       }
     });
     frame++;
