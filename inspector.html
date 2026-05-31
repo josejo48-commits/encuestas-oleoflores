@@ -145,13 +145,14 @@ textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(29,122,90,.0
       <h1>Inspección de Inocuidad</h1>
       <p>Selecciona tu área y completa la inspección del día</p>
     </div>
-    <div class="sel-lbl">¿En qué área estás?</div>
+    <div class="sel-lbl" id="sel-lbl-areas">¿En qué área estás?</div>
     <div id="area-list"></div>
     <div style="margin-top:20px;padding:14px;background:rgba(255,255,255,0.85);border-radius:12px;border:1px solid var(--border);text-align:center;font-size:11px;color:var(--muted);">
       🕒 <strong>Fecha:</strong> <span id="fecha-hoy"></span>
     </div>
 
     <!-- BOTONES CAPACITACIÓN -->
+    <div id="cap-section">
     <div style="margin-top:20px;">
       <div style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,0.7);margin-bottom:12px;">📚 Centro de Capacitación</div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
@@ -173,6 +174,8 @@ textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(29,122,90,.0
         </button>
       </div>
     </div>
+  </div>
+    </div><!-- /cap-section -->
   </div>
 </div>
 
@@ -245,6 +248,7 @@ textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(29,122,90,.0
   <div id="qcontainer"></div>
   <div class="sticky-foot">
     <button class="btn-main" onclick="enviar()">✅ Enviar inspección</button>
+    <button class="btn-sec" onclick="volverSelector()">← Cambiar área</button>
   </div>
 </div>
 
@@ -259,6 +263,7 @@ textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(29,122,90,.0
   </div>
   <div class="stats" id="res-stats"></div>
   <div id="res-nc"></div>
+  <button class="btn-main" onclick="irCapacitacion()" style="margin-top:14px;">📚 Ir al Centro de Capacitación</button>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -397,14 +402,32 @@ function startSurvey(id){
 
 function volverSelector(){
   CUR=null;ANS={};
+  document.getElementById('chip-back') && (document.getElementById('chip-back').style.display='none');
   
   show('scr-sel');
 }
+
+let ENCUESTA_ENVIADA = false;
 
 function show(id){
   ['scr-sel','scr-survey','scr-result'].forEach(s=>{
     document.getElementById(s).style.display=s===id?(s==='scr-sel'?'flex':'block'):'none';
   });
+  window.scrollTo(0,0);
+}
+
+function irCapacitacion(){
+  ENCUESTA_ENVIADA = true;
+  // Ocultar todo y mostrar solo capacitacion
+  ['scr-sel','scr-survey','scr-result',...CAP_SCREENS].forEach(s=>{
+    const el=document.getElementById(s);
+    if(el) el.style.display='none';
+  });
+  // Mostrar selector pero solo con capacitacion
+  document.getElementById('scr-sel').style.display='flex';
+  document.getElementById('area-list').innerHTML='';
+  document.getElementById('sel-lbl-areas').style.display='none';
+  document.getElementById('cap-section').style.display='block';
   window.scrollTo(0,0);
 }
 
