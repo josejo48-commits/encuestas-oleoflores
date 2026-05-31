@@ -270,7 +270,7 @@ const db = firebase.database();
 const ADMIN_PASS='oleoflores2024';
 
 const AREAS=[
-  {id:'refineria',nombre:'Refinería',icono:'🔥',nivel:'critico',desc:'Refinación de aceites — máxima exigencia',
+  {id:'refineria',nombre:'Refinería',icono:'🔥',nivel:'critico',imagen:'img_refineria.jpg',desc:'Refinación de aceites — máxima exigencia',
    preguntas:[
     {id:'r1',texto:'¿Los equipos de refinación (desgomado, neutralización, blanqueo, desodorización) están correctamente limpios y sanitizados antes de la operación?',cat:'Limpieza y Sanitización',nivel:'critico'},
     {id:'r2',texto:'¿Se verifican y registran los parámetros críticos de temperatura en cada etapa del proceso?',cat:'Control de Proceso',nivel:'critico'},
@@ -283,7 +283,7 @@ const AREAS=[
     {id:'r9',texto:'¿Los insumos químicos están almacenados y manejados según fichas de seguridad?',cat:'Insumos Químicos',nivel:'alto'},
     {id:'r10',texto:'¿Se mantienen registros de trazabilidad completos (lote entrada, salida, condiciones, responsable)?',cat:'Trazabilidad',nivel:'critico'},
   ]},
-  {id:'extractora',nombre:'Extractora',icono:'⚙️',nivel:'alto',desc:'Extracción de aceite crudo desde fruto de palma',
+  {id:'extractora',nombre:'Extractora',icono:'⚙️',nivel:'alto',imagen:'img_extractora.jpg',desc:'Extracción de aceite crudo desde fruto de palma',
    preguntas:[
     {id:'e1',texto:'¿La fruta recepcionada cumple criterios de calidad (madurez, libre de moho, sin putrefacción visible)?',cat:'Calidad Materia Prima',nivel:'alto'},
     {id:'e2',texto:'¿Las marmitas de esterilización están en buen estado y los registros de presión/temperatura son correctos?',cat:'Esterilización',nivel:'alto'},
@@ -295,7 +295,7 @@ const AREAS=[
     {id:'e8',texto:'¿Existe registro y control de residuos sólidos para evitar acumulación que genere plagas?',cat:'Residuos Sólidos',nivel:'medio'},
     {id:'e9',texto:'¿Se realiza mantenimiento preventivo de equipos críticos según el plan establecido?',cat:'Mantenimiento',nivel:'medio'},
   ]},
-  {id:'margarina',nombre:'Margarina',icono:'🧈',nivel:'alto',desc:'Producción de margarinas y shortenings',
+  {id:'margarina',nombre:'Margarina',icono:'🧈',nivel:'alto',imagen:'img_margarina.jpg',desc:'Producción de margarinas y shortenings',
    preguntas:[
     {id:'m1',texto:'¿Los equipos de producción están correctamente limpios y sanitizados con registros respectivos?',cat:'Limpieza CIP',nivel:'critico'},
     {id:'m2',texto:'¿Las materias primas están dentro de fecha de vencimiento y almacenadas correctamente?',cat:'Materias Primas',nivel:'critico'},
@@ -308,7 +308,7 @@ const AREAS=[
     {id:'m9',texto:'¿El envasado se realiza en condiciones higiénicas con materiales aprobados para contacto alimentario?',cat:'Envasado',nivel:'alto'},
     {id:'m10',texto:'¿Los lotes producidos tienen trazabilidad completa (número de lote, fecha, código operario, materias primas)?',cat:'Trazabilidad',nivel:'critico'},
   ]},
-  {id:'oleina',nombre:'Envase Oleína',icono:'🫙',nivel:'medio',desc:'Líneas de envase de oleína y aceites fraccionados',
+  {id:'oleina',nombre:'Envase Oleína',icono:'🫙',nivel:'medio',imagen:'img_oleina.jpg',desc:'Líneas de envase de oleína y aceites fraccionados',
    preguntas:[
     {id:'o1',texto:'¿Las líneas de envase están limpias y libres de residuos del lote anterior antes de iniciar?',cat:'Limpieza de Línea',nivel:'medio'},
     {id:'o2',texto:'¿Los envases son de grado alimentario, libres de daños y de proveedor aprobado?',cat:'Material de Empaque',nivel:'alto'},
@@ -319,7 +319,7 @@ const AREAS=[
     {id:'o7',texto:'¿El producto terminado en bodega está almacenado bajo condiciones adecuadas?',cat:'Almacenamiento PT',nivel:'medio'},
     {id:'o8',texto:'¿El área está libre de metales, vidrios u objetos extraños que puedan contaminar el producto?',cat:'Peligros Físicos',nivel:'alto'},
   ]},
-  {id:'sst',nombre:'SST',icono:'⛑️',nivel:'medio',desc:'Seguridad y Salud en el Trabajo',
+  {id:'sst',nombre:'SST',icono:'⛑️',nivel:'medio',imagen:'img_sst.jpg',desc:'Seguridad y Salud en el Trabajo',
    preguntas:[
     {id:'s1',texto:'¿Los extintores están vigentes, accesibles, sin obstáculos y señalizados?',cat:'Extinción de Incendios',nivel:'alto'},
     {id:'s2',texto:'¿Las rutas de evacuación están despejadas, señalizadas y con iluminación de emergencia funcional?',cat:'Evacuación',nivel:'alto'},
@@ -342,14 +342,22 @@ document.getElementById('fecha-hoy').textContent=new Date().toLocaleString('es-C
 // SELECTOR
 function renderSelector(){
   document.getElementById('area-list').innerHTML=AREAS.map(a=>`
-    <button class="area-btn" onclick="startSurvey('${a.id}')">
-      <div class="area-icon">${a.icono}</div>
-      <div class="area-info">
-        <div class="area-name">${a.nombre}</div>
-        <div class="area-desc">${a.preguntas.length} preguntas · ${a.desc}</div>
+    <button onclick="startSurvey('${a.id}')" style="width:100%;background:var(--white);border:1.5px solid var(--border);border-radius:14px;margin-bottom:10px;cursor:pointer;text-align:left;font-family:inherit;overflow:hidden;padding:0;transition:transform .15s,box-shadow .15s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 18px rgba(0,0,0,0.15)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none'">
+      ${a.imagen ? `<div style="position:relative;height:110px;overflow:hidden;">
+        <img src="${a.imagen}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.style.display='none'">
+        <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,0.1),rgba(0,0,0,0.55));"></div>
+        <div style="position:absolute;bottom:10px;left:12px;display:flex;align-items:center;gap:8px;">
+          <span style="font-size:22px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5));">${a.icono}</span>
+          <span style="font-size:16px;font-weight:800;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,0.6);">${a.nombre}</span>
+        </div>
+        <span style="position:absolute;top:10px;right:10px;" class="nvl ${NVL_CLS[a.nivel]||''}">${NVL[a.nivel]||a.nivel}</span>
+      </div>` : ''}
+      <div style="padding:12px 14px;display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-size:12px;color:var(--muted);">${a.preguntas.length} preguntas · ${a.desc}</div>
+        </div>
+        <div style="font-size:18px;color:var(--light);">›</div>
       </div>
-      <span class="nvl ${NVL_CLS[a.nivel]||''}">${NVL[a.nivel]||a.nivel}</span>
-      <div class="arr">›</div>
     </button>`).join('');
 }
 
