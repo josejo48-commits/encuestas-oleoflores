@@ -132,7 +132,7 @@ textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(29,122,90,.0
     <div class="t2">Inocuidad · Inspecciones</div>
   </div>
   <div class="topbar-right">
-    <button class="chip" id="chip-back" onclick="volverSelector()">← Cambiar área</button>
+    <button id="chip-back" style="display:none;"></button>
   </div>
 </div>
 <div onclick="toggleMusic()" id="music-btn" style="position:fixed;bottom:24px;right:20px;z-index:999;background:#fff;border-radius:50px;width:52px;height:52px;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;box-shadow:0 3px 14px rgba(0,0,0,0.35);"><span id="music-lbl">🎵</span></div>
@@ -150,7 +150,62 @@ textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(29,122,90,.0
     <div style="margin-top:20px;padding:14px;background:rgba(255,255,255,0.85);border-radius:12px;border:1px solid var(--border);text-align:center;font-size:11px;color:var(--muted);">
       🕒 <strong>Fecha:</strong> <span id="fecha-hoy"></span>
     </div>
+
+    <!-- BOTONES CAPACITACIÓN -->
+    <div style="margin-top:20px;">
+      <div style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,0.7);margin-bottom:12px;">📚 Centro de Capacitación</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+        <button onclick="showCap('infografia')" style="background:rgba(255,255,255,0.92);border:none;border-radius:14px;padding:16px 8px;cursor:pointer;text-align:center;font-family:inherit;transition:transform .15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+          <div style="font-size:28px;margin-bottom:6px;">🖼</div>
+          <div style="font-size:12px;font-weight:700;color:#0f4c3a;">Infografías</div>
+        </button>
+        <button onclick="showCap('video')" style="background:rgba(255,255,255,0.92);border:none;border-radius:14px;padding:16px 8px;cursor:pointer;text-align:center;font-family:inherit;transition:transform .15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+          <div style="font-size:28px;margin-bottom:6px;">🎬</div>
+          <div style="font-size:12px;font-weight:700;color:#1e40af;">Videos</div>
+        </button>
+        <button onclick="showCap('quiz')" style="background:rgba(255,255,255,0.92);border:none;border-radius:14px;padding:16px 8px;cursor:pointer;text-align:center;font-family:inherit;transition:transform .15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+          <div style="font-size:28px;margin-bottom:6px;">🎮</div>
+          <div style="font-size:12px;font-weight:700;color:#7c3aed;">Quiz</div>
+        </button>
+      </div>
+    </div>
   </div>
+</div>
+
+<!-- PANTALLA INFOGRAFÍA -->
+<div id="scr-infografia" style="display:none;padding:20px 16px;max-width:760px;margin:0 auto;position:relative;z-index:1;">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+    <button onclick="hideCap()" style="background:rgba(255,255,255,0.9);border:none;border-radius:50px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;color:#0f4c3a;font-family:inherit;">← Volver</button>
+    <div style="font-size:16px;font-weight:800;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,0.5);">🖼 Infografías</div>
+  </div>
+  <div style="background:rgba(255,255,255,0.95);border-radius:14px;padding:16px;">
+    <div style="font-size:14px;font-weight:700;color:#0f4c3a;margin-bottom:10px;">📋 ISO 22000:2018 — Estándar Global de Inocuidad</div>
+    <img src="Estándar_de_Inocuidad_Alimentaria_ISO.png" style="width:100%;border-radius:10px;cursor:zoom-in;" onclick="this.requestFullscreen?this.requestFullscreen():this.webkitRequestFullscreen&&this.webkitRequestFullscreen()">
+    <p style="font-size:11px;color:#64748b;margin-top:8px;text-align:center;">📌 Toca la imagen para verla en pantalla completa</p>
+  </div>
+</div>
+
+<!-- PANTALLA VIDEO -->
+<div id="scr-video" style="display:none;padding:20px 16px;max-width:760px;margin:0 auto;position:relative;z-index:1;">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+    <button onclick="hideCap()" style="background:rgba(255,255,255,0.9);border:none;border-radius:50px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;color:#0f4c3a;font-family:inherit;">← Volver</button>
+    <div style="font-size:16px;font-weight:800;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,0.5);">🎬 Videos</div>
+  </div>
+  <div style="background:rgba(255,255,255,0.95);border-radius:14px;padding:16px;">
+    <div style="font-size:14px;font-weight:700;color:#0f4c3a;margin-bottom:10px;">🎥 ISO 22000 — Guía Estratégica de Inocuidad</div>
+    <video controls style="width:100%;border-radius:10px;" preload="metadata">
+      <source src="video_inocuidad.mp4" type="video/mp4">
+    </video>
+  </div>
+</div>
+
+<!-- PANTALLA QUIZ -->
+<div id="scr-quiz" style="display:none;padding:20px 16px;max-width:760px;margin:0 auto;position:relative;z-index:1;">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+    <button onclick="hideCap()" style="background:rgba(255,255,255,0.9);border:none;border-radius:50px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;color:#0f4c3a;font-family:inherit;">← Volver</button>
+    <div style="font-size:16px;font-weight:800;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,0.5);">🎮 Quiz de Inocuidad</div>
+  </div>
+  <div id="quiz-container"></div>
 </div>
 
 <!-- ENCUESTA -->
@@ -167,7 +222,6 @@ textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(29,122,90,.0
   <div id="qcontainer"></div>
   <div class="sticky-foot">
     <button class="btn-main" onclick="enviar()">✅ Enviar inspección</button>
-    <button class="btn-sec" onclick="volverSelector()">← Cambiar área</button>
   </div>
 </div>
 
@@ -175,12 +229,13 @@ textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(29,122,90,.0
 <div id="scr-result">
   <div class="res-hero">
     <div class="res-icon">✅</div>
+    <div style="font-size:22px;font-weight:800;margin-bottom:6px;">¡Muchas gracias por su colaboración!</div>
+    <div style="font-size:14px;opacity:0.85;margin-bottom:4px;">Su inspección fue registrada exitosamente.</div>
     <div class="res-title" id="res-title">Inspección enviada</div>
     <div class="res-sub" id="res-sub"></div>
   </div>
   <div class="stats" id="res-stats"></div>
   <div id="res-nc"></div>
-  <button class="btn-main" onclick="volverSelector()" style="margin-top:14px;">← Nueva inspección</button>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -304,14 +359,14 @@ function startSurvey(id){
   document.getElementById('sh-icon').textContent=a.icono;
   document.getElementById('sh-title').textContent=a.nombre;
   document.getElementById('sh-sub').textContent=NVL[a.nivel]+' · '+a.preguntas.length+' preguntas';
-  document.getElementById('chip-back').style.display='block';
+  
   renderQuestions(a);updateProg(a);
   show('scr-survey');
 }
 
 function volverSelector(){
   CUR=null;ANS={};
-  document.getElementById('chip-back').style.display='none';
+  
   show('scr-sel');
 }
 
@@ -505,6 +560,113 @@ document.addEventListener("click",function startAudio(){
 })();
 
 renderSelector();
+
+// ── Capacitación ──
+const CAP_SCREENS = ['scr-infografia','scr-video','scr-quiz'];
+function showCap(tipo){
+  ['scr-sel','scr-survey','scr-result',...CAP_SCREENS].forEach(s=>{
+    const el=document.getElementById(s);
+    if(el) el.style.display='none';
+  });
+  const el=document.getElementById('scr-'+tipo);
+  if(el) el.style.display='block';
+  if(tipo==='quiz') initQuiz();
+  window.scrollTo(0,0);
+}
+function hideCap(){
+  CAP_SCREENS.forEach(s=>{
+    const el=document.getElementById(s);
+    if(el) el.style.display='none';
+  });
+  document.getElementById('scr-sel').style.display='flex';
+  window.scrollTo(0,0);
+}
+
+// ── Quiz ──
+const QUIZ_PREGUNTAS=[
+  {p:'¿Qué significa BPM?',ops:['Buenas Prácticas de Manufactura','Bacterias Por Minuto','Buenas Prácticas de Manipulación','Base de Producción Mejorada'],c:0,exp:'BPM = Buenas Prácticas de Manufactura. Garantizan que los alimentos se produzcan en condiciones higiénicas.'},
+  {p:'¿Cuál es el rango de la "zona de peligro" para los alimentos?',ops:['0°C a 5°C','5°C a 60°C','60°C a 100°C','-18°C a 0°C'],c:1,exp:'Entre 5°C y 60°C las bacterias se multiplican rápidamente. Los alimentos no deben estar en esta zona más de 2 horas.'},
+  {p:'¿Qué significa HACCP?',ops:['Higiene Alimentaria y Control de Calidad','Análisis de Peligros y Puntos Críticos de Control','Sistema de Control de Alimentos','Higiene y Control de Contaminación'],c:1,exp:'HACCP identifica, evalúa y controla los peligros significativos para la inocuidad de los alimentos.'},
+  {p:'¿Cuándo debe lavarse las manos el personal?',ops:['Solo al inicio del turno','Cada 2 horas','Cada vez que cambia de actividad','Una vez por hora'],c:2,exp:'El lavado debe hacerse cada vez que se cambia de actividad o se toca una superficie potencialmente contaminada.'},
+  {p:'¿Qué representa contaminación cruzada?',ops:['Usar termómetro calibrado','Cortar verduras con cuchillo de carne cruda sin lavar','Almacenar en recipientes tapados','Refrigerar a menos de 4°C'],c:1,exp:'La contaminación cruzada ocurre cuando microorganismos se transfieren de un alimento a otro mediante utensilios.'},
+  {p:'¿Qué EPP es obligatorio en producción de alimentos?',ops:['Solo guantes','Cofia, tapabocas, guantes y ropa limpia','Solo delantal','Guantes y gafas'],c:1,exp:'El EPP completo incluye cofia, tapabocas, guantes y uniforme limpio para evitar contaminar el producto.'},
+  {p:'¿Cuántos principios tiene el HACCP?',ops:['5','7','10','3'],c:1,exp:'El HACCP tiene 7 principios: análisis de peligros, PCC, límites críticos, monitoreo, acciones correctivas, verificación y documentación.'},
+  {p:'¿A qué temperatura deben mantenerse los alimentos fríos?',ops:['Menos de 10°C','Menos de 4°C','Entre 5°C y 10°C','Menos de 15°C'],c:1,exp:'Los alimentos fríos deben mantenerse por debajo de 4°C para inhibir el crecimiento bacteriano.'},
+  {p:'¿Cuál es la temperatura mínima para cocinar carne de cerdo?',ops:['60°C','71°C','82°C','55°C'],c:1,exp:'La carne de cerdo debe cocinarse a mínimo 71°C para eliminar patógenos como Salmonella y Triquina.'},
+  {p:'¿Qué es un Punto Crítico de Control (PCC)?',ops:['Control del producto terminado','Etapa donde se controla un peligro','El final de la línea de producción','Área de insumos químicos'],c:1,exp:'Un PCC es una etapa donde se aplica control para prevenir, eliminar o reducir un peligro a niveles aceptables.'},
+];
+let qState={cur:0,score:0,answered:false,finished:false,list:[]};
+function initQuiz(){
+  qState={cur:0,score:0,answered:false,finished:false,list:[...QUIZ_PREGUNTAS].sort(()=>Math.random()-.5)};
+  renderQuiz();
+}
+function renderQuiz(){
+  const c=document.getElementById('quiz-container');if(!c)return;
+  if(qState.finished){
+    const pct=Math.round((qState.score/qState.list.length)*100);
+    const emoji=pct>=80?'🏆':pct>=60?'👍':'📚';
+    const msg=pct>=80?'¡Excelente dominio de inocuidad!':pct>=60?'¡Buen resultado, sigue aprendiendo!':'Repasa los conceptos de inocuidad';
+    c.innerHTML=`<div style="background:var(--hero);border-radius:18px;padding:36px 20px;text-align:center;color:#fff;margin-bottom:16px;">
+      <div style="font-size:56px;margin-bottom:10px;">${emoji}</div>
+      <div style="font-size:30px;font-weight:800;">${pct}%</div>
+      <div style="font-size:14px;margin:6px 0;">${qState.score} de ${qState.list.length} correctas</div>
+      <div style="font-size:13px;opacity:.85;">${msg}</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:13px;padding:16px;text-align:center;">
+        <div style="font-size:32px;font-weight:800;color:#16a34a;">${qState.score}</div>
+        <div style="font-size:11px;color:var(--muted);">CORRECTAS</div>
+      </div>
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:13px;padding:16px;text-align:center;">
+        <div style="font-size:32px;font-weight:800;color:#dc2626;">${qState.list.length-qState.score}</div>
+        <div style="font-size:11px;color:var(--muted);">INCORRECTAS</div>
+      </div>
+    </div>
+    <button onclick="initQuiz()" style="width:100%;background:var(--hero);color:#fff;border:none;border-radius:11px;padding:14px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">🔄 Jugar de nuevo</button>`;
+    return;
+  }
+  const q=qState.list[qState.cur],tot=qState.list.length,pct=Math.round((qState.cur/tot)*100);
+  c.innerHTML=`<div style="background:rgba(255,255,255,0.97);border-radius:14px;padding:18px;margin-bottom:12px;">
+    <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+      <span style="font-size:12px;font-weight:700;color:var(--muted);">Pregunta ${qState.cur+1} de ${tot}</span>
+      <span style="font-size:12px;font-weight:700;color:var(--accent);">✅ ${qState.score} correctas</span>
+    </div>
+    <div style="height:6px;background:#f1f5f9;border-radius:100px;overflow:hidden;margin-bottom:14px;">
+      <div style="height:100%;width:${pct}%;background:var(--hero);border-radius:100px;transition:width .4s;"></div>
+    </div>
+    <div style="font-size:15px;font-weight:700;color:var(--text);line-height:1.5;margin-bottom:16px;">🧠 ${q.p}</div>
+    <div style="display:flex;flex-direction:column;gap:8px;" id="quiz-opts">
+      ${q.ops.map((op,i)=>`<button onclick="qResponder(${i})" id="opt-${i}" style="background:#f8fafc;border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-size:13px;font-weight:500;cursor:pointer;text-align:left;color:var(--text);font-family:inherit;display:flex;align-items:center;gap:9px;">
+        <span style="width:26px;height:26px;border-radius:50%;background:var(--accent-light);color:var(--accent);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${String.fromCharCode(65+i)}</span>${op}</button>`).join('')}
+    </div>
+    <div id="quiz-feedback" style="display:none;margin-top:14px;"></div>
+  </div>
+  <button id="btn-sig" onclick="qSig()" style="display:none;width:100%;background:var(--hero);color:#fff;border:none;border-radius:11px;padding:14px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">${qState.cur+1<tot?'→ Siguiente pregunta':'🏁 Ver resultados'}</button>`;
+}
+function qResponder(idx){
+  if(qState.answered)return;qState.answered=true;
+  const q=qState.list[qState.cur];
+  if(idx===q.c)qState.score++;
+  q.ops.forEach((_,i)=>{
+    const btn=document.getElementById('opt-'+i);if(!btn)return;
+    btn.style.cursor='default';
+    if(i===q.c){btn.style.background='#f0fdf4';btn.style.borderColor='#16a34a';btn.style.color='#16a34a';btn.style.fontWeight='700';}
+    else if(i===idx){btn.style.background='#fef2f2';btn.style.borderColor='#dc2626';btn.style.color='#dc2626';}
+  });
+  const fb=document.getElementById('quiz-feedback');
+  fb.style.display='block';
+  fb.innerHTML=`<div style="background:${idx===q.c?'#f0fdf4':'#fef2f2'};border:1px solid ${idx===q.c?'#bbf7d0':'#fecaca'};border-radius:10px;padding:12px;">
+    <div style="font-size:14px;font-weight:800;color:${idx===q.c?'#16a34a':'#dc2626'};margin-bottom:5px;">${idx===q.c?'✅ ¡Correcto!':'❌ Incorrecto'}</div>
+    <div style="font-size:12px;color:var(--text);line-height:1.5;">💡 ${q.exp}</div>
+  </div>`;
+  document.getElementById('btn-sig').style.display='block';
+}
+function qSig(){
+  qState.cur++;qState.answered=false;
+  if(qState.cur>=qState.list.length)qState.finished=true;
+  renderQuiz();
+}
+
 </script>
 </body>
 </html>
