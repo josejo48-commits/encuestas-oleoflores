@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inspección · OLEOFLORES</title>
+<style>
+:root{--bg:#f0f4f8;--white:#fff;--border:#e2e8f0;--text:#1e293b;--muted:#64748b;--light:#94a3b8;
+--green:#16a34a;--green-bg:#f0fdf4;--red:#dc2626;--red-bg:#fef2f2;--amber:#d97706;--amber-bg:#fffbeb;
+--accent:#1d7a5a;--accent-light:#e6f7f2;--hero:linear-gradient(135deg,#0f4c3a,#1d7a5a,#22a67a);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;font-size:14px;}
+.topbar{background:linear-gradient(135deg,#0a2d22,#0f4c3a,#1a5c48);padding:0 20px;display:flex;align-items:center;height:54px;gap:12px;position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(0,0,0,.3);}
+.logo-icon{width:36px;height:36px;border-radius:9px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;cursor:pointer;}
+.logo-text .t1{font-size:14px;font-weight:800;color:#fff;}
+.logo-text .t2{font-size:9px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.8px;}
+.topbar-right{margin-left:auto;}
+.chip{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:100px;padding:5px 14px;font-size:12px;font-weight:600;cursor:pointer;display:none;}
+.chip:hover{background:rgba(255,255,255,.25);}
+
+/* SELECTOR */
+#scr-sel{min-height:calc(100vh - 54px);display:flex;align-items:flex-start;justify-content:center;padding:28px 16px;}
+.sel-wrap{width:100%;max-width:580px;}
+.sel-hero{background:var(--hero);border-radius:18px;padding:28px;margin-bottom:24px;text-align:center;}
+.sel-hero h1{color:#fff;font-size:20px;font-weight:800;margin-bottom:6px;}
+.sel-hero p{color:rgba(255,255,255,.7);font-size:13px;}
+.sel-lbl{font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px;}
+.area-btn{display:flex;align-items:center;gap:14px;width:100%;padding:14px 18px;background:var(--white);border:1.5px solid var(--border);border-radius:13px;margin-bottom:9px;cursor:pointer;text-align:left;transition:all .15s;font-family:inherit;}
+.area-btn:hover{border-color:var(--accent);box-shadow:0 4px 16px rgba(29,122,90,.12);transform:translateY(-1px);}
+.area-icon{font-size:26px;width:40px;text-align:center;}
+.area-info{flex:1;}
+.area-name{font-size:14px;font-weight:700;color:var(--text);}
+.area-desc{font-size:11px;color:var(--muted);margin-top:2px;}
+.nvl{font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;}
+.nvl-critico{background:#fef2f2;color:#dc2626;}
+.nvl-alto{background:#fff7ed;color:#ea580c;}
+.nvl-medio{background:#fffbeb;color:#d97706;}
+.arr{font-size:18px;color:var(--light);}
+
+/* ENCUESTA */
+#scr-survey{display:none;padding:20px 16px;max-width:760px;margin:0 auto;}
+.sv-hdr{background:var(--hero);border-radius:14px;padding:18px 20px;margin-bottom:18px;display:flex;align-items:center;gap:12px;}
+.sv-hdr-icon{font-size:30px;}
+.sv-hdr-title{font-size:16px;font-weight:800;color:#fff;}
+.sv-hdr-sub{font-size:11px;color:rgba(255,255,255,.7);margin-top:2px;}
+.prog-wrap{height:7px;background:rgba(255,255,255,.2);border-radius:100px;margin-top:10px;overflow:hidden;}
+.prog-fill{height:100%;background:#4ade80;border-radius:100px;transition:width .4s;}
+.prog-txt{display:flex;justify-content:space-between;font-size:12px;color:rgba(255,255,255,.8);margin-top:5px;}
+.qcard{background:var(--white);border:1px solid var(--border);border-radius:13px;padding:18px;margin-bottom:10px;transition:all .2s;}
+.qcard.nc-on{border-color:#fcd34d;box-shadow:0 0 0 3px rgba(217,119,6,.08);}
+.qcard.bad-on{border-color:#fca5a5;box-shadow:0 0 0 3px rgba(220,38,38,.08);}
+.qhdr{display:flex;gap:10px;margin-bottom:12px;}
+.qnum{width:26px;height:26px;border-radius:50%;background:var(--accent-light);color:var(--accent);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.qcat{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px;}
+.qtxt{font-size:13px;font-weight:600;color:var(--text);line-height:1.5;}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.obtn{background:#f8fafc;border:1.5px solid var(--border);border-radius:9px;padding:10px 12px;font-size:12px;font-weight:500;cursor:pointer;text-align:left;color:var(--text);transition:all .15s;font-family:inherit;display:flex;align-items:center;gap:8px;}
+.obtn:hover{border-color:var(--accent);background:var(--accent-light);}
+.obtn.s-ok{border-color:var(--green);background:var(--green-bg);color:var(--green);font-weight:700;}
+.obtn.s-nc{border-color:var(--amber);background:var(--amber-bg);color:var(--amber);font-weight:700;}
+.obtn.s-bad{border-color:var(--red);background:var(--red-bg);color:var(--red);font-weight:700;}
+.obtn.s-na{border-color:var(--light);background:#f8fafc;color:var(--muted);font-weight:700;}
+.dot{width:15px;height:15px;border-radius:50%;border:2px solid currentColor;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.dot.on::after{content:'';width:7px;height:7px;border-radius:50%;background:currentColor;display:block;}
+.nc-sec{margin-top:12px;border-top:1.5px dashed #fcd34d;padding-top:12px;}
+.nc-sec.bad{border-color:#fca5a5;}
+.nc-ttl{font-size:11px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:5px;}
+.nc-ttl.ok{color:var(--amber);}
+.nc-ttl.bad{color:var(--red);}
+.nc-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.nc-lbl{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px;}
+textarea{width:100%;border:1px solid var(--border);border-radius:8px;padding:9px 11px;font-size:12px;color:var(--text);font-family:inherit;outline:none;resize:vertical;min-height:65px;transition:border .15s;}
+textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(29,122,90,.08);}
+.photo-drop{border:2px dashed var(--border);border-radius:9px;padding:12px;text-align:center;cursor:pointer;transition:all .15s;}
+.photo-drop:hover{border-color:var(--accent);background:var(--accent-light);}
+.thumbs{display:flex;gap:7px;flex-wrap:wrap;margin-top:7px;}
+.thumb{width:56px;height:56px;border-radius:7px;object-fit:cover;border:1px solid var(--border);}
+.sticky-foot{position:sticky;bottom:0;background:var(--bg);padding:14px 0 10px;border-top:1px solid var(--border);margin-top:6px;}
+.btn-main{width:100%;background:var(--hero);color:#fff;border:none;border-radius:11px;padding:14px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:opacity .15s;}
+.btn-main:hover{opacity:.88;}
+.btn-sec{width:100%;background:transparent;color:var(--muted);border:1.5px solid var(--border);border-radius:11px;padding:11px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:7px;}
+
+/* RESULTADO */
+#scr-result{display:none;padding:28px 16px;max-width:580px;margin:0 auto;}
+.res-hero{text-align:center;padding:28px 20px;background:var(--hero);border-radius:18px;margin-bottom:20px;color:#fff;}
+.res-icon{font-size:52px;margin-bottom:10px;}
+.res-title{font-size:20px;font-weight:800;margin-bottom:5px;}
+.res-sub{font-size:12px;color:rgba(255,255,255,.7);}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:18px;}
+.stat{background:var(--white);border:1px solid var(--border);border-radius:13px;padding:14px;text-align:center;}
+.stat-v{font-size:26px;font-weight:800;line-height:1;}
+.stat-l{font-size:10px;color:var(--muted);margin-top:3px;}
+.nc-card{background:var(--white);border:1px solid var(--border);border-radius:11px;padding:12px;margin-bottom:7px;}
+.badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;white-space:nowrap;}
+.badge-bad{background:var(--red-bg);color:var(--red);}
+.badge-nc{background:var(--amber-bg);color:var(--amber);}
+
+/* TOAST / MODAL ADMIN */
+.toast{position:fixed;bottom:75px;left:50%;transform:translateX(-50%) translateY(20px);background:#1e293b;color:#fff;padding:10px 20px;border-radius:100px;font-size:13px;font-weight:600;opacity:0;transition:all .3s;z-index:9999;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:none;align-items:center;justify-content:center;}
+.overlay.open{display:flex;}
+.modal{background:var(--white);border-radius:16px;padding:28px;width:90%;max-width:360px;text-align:center;}
+.modal h3{font-size:16px;font-weight:800;margin-bottom:6px;}
+.modal p{font-size:13px;color:var(--muted);margin-bottom:20px;}
+.inp{width:100%;border:1.5px solid var(--border);border-radius:9px;padding:11px 14px;font-size:14px;font-family:inherit;outline:none;margin-bottom:10px;}
+.inp:focus{border-color:var(--accent);}
+.err{color:var(--red);font-size:12px;margin-bottom:10px;display:none;}
+@media(max-width:480px){.opts{grid-template-columns:1fr;}.nc-row{grid-template-columns:1fr;}}
+</style>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo-icon" onclick="logoClick()" id="logo-btn">🛡️</div>
+  <div class="logo-text">
+    <div class="t1">OLEOFLORES</div>
+    <div class="t2">Inocuidad · Inspecciones</div>
+  </div>
+  <div class="topbar-right">
+    <button class="chip" id="chip-back" onclick="volverSelector()">← Cambiar área</button>
+  </div>
+</div>
+
+<!-- SELECTOR -->
+<div id="scr-sel">
+  <div class="sel-wrap">
+    <div class="sel-hero">
+      <div style="font-size:44px;margin-bottom:10px;">🛡️</div>
+      <h1>Inspección de Inocuidad</h1>
+      <p>Selecciona tu área y completa la inspección del día</p>
+    </div>
+    <div class="sel-lbl">¿En qué área estás?</div>
+    <div id="area-list"></div>
+    <div style="margin-top:20px;padding:14px;background:var(--white);border-radius:12px;border:1px solid var(--border);text-align:center;font-size:11px;color:var(--muted);">
+      🕒 <strong>Fecha:</strong> <span id="fecha-hoy"></span>
+    </div>
+  </div>
+</div>
+
+<!-- ENCUESTA -->
+<div id="scr-survey">
+  <div class="sv-hdr">
+    <div class="sv-hdr-icon" id="sh-icon"></div>
+    <div style="flex:1">
+      <div class="sv-hdr-title" id="sh-title"></div>
+      <div class="sv-hdr-sub" id="sh-sub"></div>
+      <div class="prog-wrap"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+      <div class="prog-txt"><span id="prog-txt">0 de 0</span><span id="prog-pct">0%</span></div>
+    </div>
+  </div>
+  <div id="qcontainer"></div>
+  <div class="sticky-foot">
+    <button class="btn-main" onclick="enviar()">✅ Enviar inspección</button>
+    <button class="btn-sec" onclick="volverSelector()">← Cambiar área</button>
+  </div>
+</div>
+
+<!-- RESULTADO -->
+<div id="scr-result">
+  <div class="res-hero">
+    <div class="res-icon">✅</div>
+    <div class="res-title" id="res-title">Inspección enviada</div>
+    <div class="res-sub" id="res-sub"></div>
+  </div>
+  <div class="stats" id="res-stats"></div>
+  <div id="res-nc"></div>
+  <button class="btn-main" onclick="volverSelector()" style="margin-top:14px;">← Nueva inspección</button>
+</div>
+
+<div class="toast" id="toast"></div>
+<input type="file" id="file-inp" accept="image/*" multiple style="display:none">
+
+<!-- MODAL ADMIN -->
+<div class="overlay" id="ov-admin">
+  <div class="modal">
+    <div style="font-size:36px;margin-bottom:8px;">🛡️</div>
+    <h3>Acceso Administrador</h3>
+    <p>Ingresa la contraseña para ir al panel</p>
+    <input class="inp" type="password" id="admin-pass" placeholder="Contraseña" onkeydown="if(event.key==='Enter')checkAdmin()">
+    <div class="err" id="admin-err">Contraseña incorrecta</div>
+    <button class="btn-main" onclick="checkAdmin()">Entrar como Admin →</button>
+    <button class="btn-sec" onclick="closeAdmin()">Cancelar</button>
+  </div>
+</div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyDxpJdqMBqWsDw5bAYbwZsipz-4XGSadqw",
+  authDomain: "inocuidad-calidad.firebaseapp.com",
+  databaseURL: "https://inocuidad-calidad-default-rtdb.firebaseio.com",
+  projectId: "inocuidad-calidad",
+  storageBucket: "inocuidad-calidad.firebasestorage.app",
+  messagingSenderId: "808137553333",
+  appId: "1:808137553333:web:8f1c59182f070e2e44d5fc"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+const ADMIN_PASS='oleoflores2024';
+
+const AREAS=[
+  {id:'refineria',nombre:'Refinería',icono:'🔥',nivel:'critico',desc:'Refinación de aceites — máxima exigencia',
+   preguntas:[
+    {id:'r1',texto:'¿Los equipos de refinación (desgomado, neutralización, blanqueo, desodorización) están correctamente limpios y sanitizados antes de la operación?',cat:'Limpieza y Sanitización',nivel:'critico'},
+    {id:'r2',texto:'¿Se verifican y registran los parámetros críticos de temperatura en cada etapa del proceso?',cat:'Control de Proceso',nivel:'critico'},
+    {id:'r3',texto:'¿Los materiales y utensilios en contacto con el aceite son de grado alimentario y están en buen estado?',cat:'Materiales Alimentarios',nivel:'critico'},
+    {id:'r4',texto:'¿El personal operador usa EPP completo (cofia, tapabocas, guantes, ropa limpia) y cumple BPM activamente?',cat:'BPM / EPP',nivel:'alto'},
+    {id:'r5',texto:'¿Los tanques y tuberías están identificados, cerrados y libres de contaminación cruzada?',cat:'Almacenamiento',nivel:'critico'},
+    {id:'r6',texto:'¿Se realizan análisis de calidad (acidez, peróxidos, color, humedad) con la frecuencia del plan HACCP?',cat:'Análisis y HACCP',nivel:'critico'},
+    {id:'r7',texto:'¿El sistema de filtración está limpio, en funcionamiento y con registros de cambio de filtros al día?',cat:'Equipos',nivel:'alto'},
+    {id:'r8',texto:'¿Existe control efectivo de plagas: trampas activas, sin evidencia de roedores ni insectos?',cat:'Control de Plagas',nivel:'alto'},
+    {id:'r9',texto:'¿Los insumos químicos están almacenados y manejados según fichas de seguridad?',cat:'Insumos Químicos',nivel:'alto'},
+    {id:'r10',texto:'¿Se mantienen registros de trazabilidad completos (lote entrada, salida, condiciones, responsable)?',cat:'Trazabilidad',nivel:'critico'},
+  ]},
+  {id:'extractora',nombre:'Extractora',icono:'⚙️',nivel:'alto',desc:'Extracción de aceite crudo desde fruto de palma',
+   preguntas:[
+    {id:'e1',texto:'¿La fruta recepcionada cumple criterios de calidad (madurez, libre de moho, sin putrefacción visible)?',cat:'Calidad Materia Prima',nivel:'alto'},
+    {id:'e2',texto:'¿Las marmitas de esterilización están en buen estado y los registros de presión/temperatura son correctos?',cat:'Esterilización',nivel:'alto'},
+    {id:'e3',texto:'¿El desfrutador y digestor están limpios antes de iniciar y se realiza limpieza entre lotes?',cat:'Limpieza de Equipos',nivel:'alto'},
+    {id:'e4',texto:'¿El aceite crudo extraído se almacena en tanques limpios, sin mezcla de lotes y correctamente cerrados?',cat:'Almacenamiento',nivel:'alto'},
+    {id:'e5',texto:'¿El proceso de centrifugación y clarificación opera dentro de parámetros establecidos?',cat:'Control de Proceso',nivel:'medio'},
+    {id:'e6',texto:'¿El personal usa EPP adecuado según el área de riesgo?',cat:'BPM / EPP',nivel:'medio'},
+    {id:'e7',texto:'¿Los efluentes del proceso se gestionan correctamente sin riesgo de contaminación al producto?',cat:'Gestión de Efluentes',nivel:'alto'},
+    {id:'e8',texto:'¿Existe registro y control de residuos sólidos para evitar acumulación que genere plagas?',cat:'Residuos Sólidos',nivel:'medio'},
+    {id:'e9',texto:'¿Se realiza mantenimiento preventivo de equipos críticos según el plan establecido?',cat:'Mantenimiento',nivel:'medio'},
+  ]},
+  {id:'margarina',nombre:'Margarina',icono:'🧈',nivel:'alto',desc:'Producción de margarinas y shortenings',
+   preguntas:[
+    {id:'m1',texto:'¿Los equipos de producción están correctamente limpios y sanitizados con registros respectivos?',cat:'Limpieza CIP',nivel:'critico'},
+    {id:'m2',texto:'¿Las materias primas están dentro de fecha de vencimiento y almacenadas correctamente?',cat:'Materias Primas',nivel:'critico'},
+    {id:'m3',texto:'¿Se realizan análisis microbiológicos periódicos al producto final dentro de límites establecidos?',cat:'Microbiología',nivel:'critico'},
+    {id:'m4',texto:'¿Los parámetros de textura, punto de fusión y humedad se controlan en cada lote de producción?',cat:'Control de Calidad',nivel:'alto'},
+    {id:'m5',texto:'¿El cuarto frío mantiene la temperatura requerida (≤10°C) con registro continuo?',cat:'Cadena de Frío',nivel:'critico'},
+    {id:'m6',texto:'¿El personal cumple estrictamente BPM: sin joyas, uniforme limpio, cabello cubierto, lavado de manos?',cat:'BPM',nivel:'alto'},
+    {id:'m7',texto:'¿Los aditivos se adicionan según formulación aprobada, con básculas calibradas y registros de pesaje?',cat:'Formulación',nivel:'alto'},
+    {id:'m8',texto:'¿El área está libre de plagas con registros vigentes del programa de control?',cat:'Control de Plagas',nivel:'alto'},
+    {id:'m9',texto:'¿El envasado se realiza en condiciones higiénicas con materiales aprobados para contacto alimentario?',cat:'Envasado',nivel:'alto'},
+    {id:'m10',texto:'¿Los lotes producidos tienen trazabilidad completa (número de lote, fecha, código operario, materias primas)?',cat:'Trazabilidad',nivel:'critico'},
+  ]},
+  {id:'oleina',nombre:'Envase Oleína',icono:'🫙',nivel:'medio',desc:'Líneas de envase de oleína y aceites fraccionados',
+   preguntas:[
+    {id:'o1',texto:'¿Las líneas de envase están limpias y libres de residuos del lote anterior antes de iniciar?',cat:'Limpieza de Línea',nivel:'medio'},
+    {id:'o2',texto:'¿Los envases son de grado alimentario, libres de daños y de proveedor aprobado?',cat:'Material de Empaque',nivel:'alto'},
+    {id:'o3',texto:'¿El etiquetado corresponde exactamente al producto envasado (nombre, contenido, fecha, lote, nutricional)?',cat:'Etiquetado',nivel:'alto'},
+    {id:'o4',texto:'¿Se verifica el volumen/peso de llenado al inicio, cada hora y ante cambios de lote?',cat:'Control Metrológico',nivel:'medio'},
+    {id:'o5',texto:'¿El sistema de tapado/sellado garantiza hermeticidad y las tapas son de grado alimentario?',cat:'Integridad del Envase',nivel:'medio'},
+    {id:'o6',texto:'¿Se realiza trazabilidad por lote: código aceite, lote envases, fecha de producción, operarios?',cat:'Trazabilidad',nivel:'alto'},
+    {id:'o7',texto:'¿El producto terminado en bodega está almacenado bajo condiciones adecuadas?',cat:'Almacenamiento PT',nivel:'medio'},
+    {id:'o8',texto:'¿El área está libre de metales, vidrios u objetos extraños que puedan contaminar el producto?',cat:'Peligros Físicos',nivel:'alto'},
+  ]},
+  {id:'sst',nombre:'SST',icono:'⛑️',nivel:'medio',desc:'Seguridad y Salud en el Trabajo',
+   preguntas:[
+    {id:'s1',texto:'¿Los extintores están vigentes, accesibles, sin obstáculos y señalizados?',cat:'Extinción de Incendios',nivel:'alto'},
+    {id:'s2',texto:'¿Las rutas de evacuación están despejadas, señalizadas y con iluminación de emergencia funcional?',cat:'Evacuación',nivel:'alto'},
+    {id:'s3',texto:'¿Los botiquines de primeros auxilios están completos, actualizados y accesibles en cada área?',cat:'Primeros Auxilios',nivel:'alto'},
+    {id:'s4',texto:'¿El personal reporta incidentes y accidentes dentro de las 24 horas según el protocolo?',cat:'Reporte de Incidentes',nivel:'medio'},
+    {id:'s5',texto:'¿Los exámenes médicos ocupacionales están vigentes para todo el personal?',cat:'Salud Ocupacional',nivel:'medio'},
+    {id:'s6',texto:'¿Las señalizaciones de seguridad están visibles y en buen estado?',cat:'Señalización',nivel:'medio'},
+    {id:'s7',texto:'¿Los EPP están disponibles, en buen estado y el personal los usa correctamente?',cat:'EPP',nivel:'alto'},
+    {id:'s8',texto:'¿Los tableros eléctricos están cerrados, señalizados y sin cables expuestos?',cat:'Riesgo Eléctrico',nivel:'alto'},
+  ]},
+];
+
+const NVL={critico:'🔴 Crítico',alto:'🟠 Alto',medio:'🟡 Medio'};
+const NVL_CLS={critico:'nvl-critico',alto:'nvl-alto',medio:'nvl-medio'};
+let CUR=null,ANS={},_pArea=null,_pQ=null,_clicks=0,_timer=null;
+
+// FECHA HOY
+document.getElementById('fecha-hoy').textContent=new Date().toLocaleString('es-CO',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+// SELECTOR
+function renderSelector(){
+  document.getElementById('area-list').innerHTML=AREAS.map(a=>`
+    <button class="area-btn" onclick="startSurvey('${a.id}')">
+      <div class="area-icon">${a.icono}</div>
+      <div class="area-info">
+        <div class="area-name">${a.nombre}</div>
+        <div class="area-desc">${a.preguntas.length} preguntas · ${a.desc}</div>
+      </div>
+      <span class="nvl ${NVL_CLS[a.nivel]||''}">${NVL[a.nivel]||a.nivel}</span>
+      <div class="arr">›</div>
+    </button>`).join('');
+}
+
+function startSurvey(id){
+  CUR=id;ANS={};
+  const a=AREAS.find(x=>x.id===id);
+  document.getElementById('sh-icon').textContent=a.icono;
+  document.getElementById('sh-title').textContent=a.nombre;
+  document.getElementById('sh-sub').textContent=NVL[a.nivel]+' · '+a.preguntas.length+' preguntas';
+  document.getElementById('chip-back').style.display='block';
+  renderQuestions(a);updateProg(a);
+  show('scr-survey');
+}
+
+function volverSelector(){
+  CUR=null;ANS={};
+  document.getElementById('chip-back').style.display='none';
+  show('scr-sel');
+}
+
+function show(id){
+  ['scr-sel','scr-survey','scr-result'].forEach(s=>{
+    document.getElementById(s).style.display=s===id?(s==='scr-sel'?'flex':'block'):'none';
+  });
+  window.scrollTo(0,0);
+}
+
+// PREGUNTAS
+function renderQuestions(a){
+  document.getElementById('qcontainer').innerHTML=a.preguntas.map((q,i)=>renderQ(a.id,q,i)).join('');
+}
+
+function renderQ(aid,q,i){
+  const ans=(ANS[aid]||{})[q.id],val=ans?ans.value:null;
+  const cc=val==='nc'?'nc-on':val==='bad'?'bad-on':'';
+  const ops=[{v:'ok',l:'✅ Cumple',c:val==='ok'?'s-ok':''},{v:'nc',l:'⚠️ Cumple parcialmente',c:val==='nc'?'s-nc':''},{v:'bad',l:'❌ No cumple',c:val==='bad'?'s-bad':''},{v:'na',l:'➖ No aplica',c:val==='na'?'s-na':''}];
+  const showNC=val==='nc'||val==='bad';
+  return `<div class="qcard ${cc}" id="qc-${q.id}">
+    <div class="qhdr">
+      <div class="qnum">${i+1}</div>
+      <div style="flex:1">
+        <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;margin-bottom:3px;">
+          <span class="nvl ${NVL_CLS[q.nivel]||''}" style="font-size:9px;">${NVL[q.nivel]||q.nivel}</span>
+          <span style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;">${q.cat}</span>
+        </div>
+        <div class="qtxt">${q.texto}</div>
+      </div>
+    </div>
+    <div class="opts">${ops.map(o=>`<button class="obtn ${o.c}" onclick="selAns('${aid}','${q.id}','${o.v}')">
+      <span class="dot ${val===o.v?'on':''}"></span>${o.l}</button>`).join('')}</div>
+    ${showNC?`<div class="nc-sec${val==='bad'?' bad':''}">
+      <div class="nc-ttl ${val==='bad'?'bad':'ok'}">${val==='bad'?'🚨 No conformidad':'⚠️ Cumplimiento parcial'}</div>
+      <div class="nc-row">
+        <div><div class="nc-lbl">Descripción *</div>
+          <textarea placeholder="Qué se encontró..." oninput="saveNC('${aid}','${q.id}','obs',this.value)">${ans&&ans.obs?ans.obs:''}</textarea></div>
+        <div><div class="nc-lbl">Acción correctiva</div>
+          <textarea placeholder="Acción a tomar..." oninput="saveNC('${aid}','${q.id}','accion',this.value)">${ans&&ans.accion?ans.accion:''}</textarea></div>
+      </div>
+      <div class="nc-lbl">Evidencia fotográfica</div>
+      <div class="photo-drop" onclick="trigPhoto('${aid}','${q.id}')">
+        <div style="font-size:22px;margin-bottom:3px;">📷</div>
+        <div style="font-size:11px;color:var(--muted)">Toca para adjuntar fotos</div>
+      </div>
+      <div class="thumbs" id="th-${q.id}">${ans&&ans.fotos?ans.fotos.map(f=>`<img class="thumb" src="${f}">`).join(''):''}</div>
+    </div>`:''}
+  </div>`;
+}
+
+function selAns(aid,qid,val){
+  if(!ANS[aid])ANS[aid]={};
+  ANS[aid][qid]={...(ANS[aid][qid]||{}),value:val};
+  const a=AREAS.find(x=>x.id===aid),q=a.preguntas.find(x=>x.id===qid),i=a.preguntas.indexOf(q);
+  const old=document.getElementById('qc-'+qid),tmp=document.createElement('div');
+  tmp.innerHTML=renderQ(aid,q,i);old.replaceWith(tmp.firstChild);
+  updateProg(a);
+}
+
+function saveNC(aid,qid,field,val){
+  if(!ANS[aid])ANS[aid]={};if(!ANS[aid][qid])ANS[aid][qid]={};
+  ANS[aid][qid][field]=val;
+}
+
+function updateProg(a){
+  const tot=a.preguntas.length,ans=Object.keys(ANS[a.id]||{}).length,pct=Math.round((ans/tot)*100);
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('prog-txt').textContent=ans+' de '+tot+' respondidas';
+  document.getElementById('prog-pct').textContent=pct+'%';
+}
+
+// FOTOS
+function trigPhoto(aid,qid){_pArea=aid;_pQ=qid;const i=document.getElementById('file-inp');i.value='';i.click();}
+document.getElementById('file-inp').addEventListener('change',function(){
+  if(!_pArea||!_pQ||!this.files.length)return;
+  if(!ANS[_pArea])ANS[_pArea]={};if(!ANS[_pArea][_pQ])ANS[_pArea][_pQ]={};
+  if(!ANS[_pArea][_pQ].fotos)ANS[_pArea][_pQ].fotos=[];
+  const th=document.getElementById('th-'+_pQ);
+  Array.from(this.files).forEach(f=>{
+    const r=new FileReader();
+    r.onload=e=>{
+      const img=new Image();
+      img.onload=()=>{
+        const c=document.createElement('canvas');let w=img.width,h=img.height;
+        if(w>800){h=Math.round(h*800/w);w=800;}if(h>800){w=Math.round(w*800/h);h=800;}
+        c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);
+        const d=c.toDataURL('image/jpeg',.7);
+        ANS[_pArea][_pQ].fotos.push(d);
+        if(th){const el=document.createElement('img');el.src=d;el.className='thumb';th.appendChild(el);}
+      };img.src=e.target.result;
+    };r.readAsDataURL(f);
+  });
+});
+
+// ENVIAR
+async function enviar(){
+  const a=AREAS.find(x=>x.id===CUR),ans=ANS[a.id]||{};
+  const falta=a.preguntas.length-Object.keys(ans).length;
+  if(falta>0&&!confirm('Faltan '+falta+' pregunta(s). ¿Enviar de todas formas?'))return;
+  const ok=Object.values(ans).filter(x=>x.value==='ok').length;
+  const nc=Object.values(ans).filter(x=>x.value==='nc').length;
+  const bad=Object.values(ans).filter(x=>x.value==='bad').length;
+  const pct=Math.round((ok/a.preguntas.length)*100);
+  mostrarResultado(a,ans,ok,nc,bad,pct);
+  try{
+    const inspeccionRef = db.ref('inspecciones').push();
+    const inspeccionId = inspeccionRef.key;
+    const respuestas={};
+    for(const q of a.preguntas){
+      const r=ans[q.id];if(!r)continue;
+      respuestas[q.id]={
+        pregunta_texto:q.texto,
+        valor:r.value||null,
+        observacion:r.obs||null,
+        accion:r.accion||null,
+        categoria:q.cat,
+        nivel:q.nivel,
+        fotos:r.fotos||[]
+      };
+    }
+    await inspeccionRef.set({
+      id:inspeccionId,
+      area_id:a.id,
+      area_nombre:a.nombre,
+      area_icono:a.icono,
+      nivel:a.nivel,
+      inspector_user:'inspector',
+      pct_cumplimiento:pct,
+      ok,nc,bad,
+      total_preguntas:a.preguntas.length,
+      respondidas:Object.keys(ans).length,
+      created_at:new Date().toISOString(),
+      fecha_display:new Date().toLocaleString('es-CO'),
+      respuestas
+    });
+    toast('☁️ Guardado en Firebase ✅');
+  }catch(e){toast('⚠️ Error al guardar: '+e.message);console.error(e);}
+}
+
+function mostrarResultado(a,ans,ok,nc,bad,pct){
+  const col=pct>=80?'#16a34a':pct>=50?'#d97706':'#dc2626';
+  document.getElementById('res-title').textContent=a.icono+' '+a.nombre+' — Enviada';
+  document.getElementById('res-sub').textContent=new Date().toLocaleString('es-CO');
+  document.getElementById('res-stats').innerHTML=[
+    {v:Object.keys(ans).length,l:'Respondidas',c:'#0f4c3a'},{v:ok,l:'Cumple',c:'#16a34a'},
+    {v:nc,l:'Cumple parcialmente',c:'#d97706'},{v:bad,l:'No cumple',c:'#dc2626'},
+  ].map(s=>`<div class="stat"><div class="stat-v" style="color:${s.c}">${s.v}</div><div class="stat-l">${s.l}</div></div>`).join('');
+  const ncList=a.preguntas.filter(q=>{const r=ans[q.id];return r&&(r.value==='nc'||r.value==='bad');});
+  const el=document.getElementById('res-nc');
+  el.innerHTML=ncList.length===0
+    ?'<div style="text-align:center;padding:20px;color:var(--light);font-size:13px;background:var(--white);border:1px solid var(--border);border-radius:13px;">🎉 ¡Sin no conformidades!</div>'
+    :'<div style="font-size:13px;font-weight:700;margin-bottom:10px;">⚠️ No conformidades ('+ncList.length+')</div>'+ncList.map(q=>{const r=ans[q.id];return`<div class="nc-card"><div style="display:flex;gap:8px;align-items:flex-start"><span class="badge ${r.value==='bad'?'badge-bad':'badge-nc'}">${r.value==='bad'?'❌ No cumple':'⚠️ Parcial'}</span><div><div style="font-size:12px;font-weight:600">${q.texto}</div><div style="font-size:10px;color:var(--muted)">${q.cat}</div></div></div>${r.obs?'<div style="background:#fffbeb;border-radius:6px;padding:7px 9px;font-size:11px;color:#92400e;margin-top:7px">📝 '+r.obs+'</div>':''}</div>`;}).join('');
+  show('scr-result');
+}
+
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
+
+// LOGO CLICK → ADMIN
+function logoClick(){
+  _clicks++;clearTimeout(_timer);
+  if(_clicks>=5){_clicks=0;document.getElementById('ov-admin').classList.add('open');setTimeout(()=>document.getElementById('admin-pass').focus(),100);}
+  else _timer=setTimeout(()=>_clicks=0,2000);
+}
+function checkAdmin(){
+  const p=document.getElementById('admin-pass').value;
+  if(p===ADMIN_PASS){window.location.href='index.html';}
+  else{document.getElementById('admin-err').style.display='block';}
+}
+function closeAdmin(){document.getElementById('ov-admin').classList.remove('open');document.getElementById('admin-pass').value='';document.getElementById('admin-err').style.display='none';}
+
+renderSelector();
+</script>
+</body>
+</html>
