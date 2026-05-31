@@ -167,6 +167,10 @@ textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(29,122,90,.0
           <div style="font-size:28px;margin-bottom:6px;">🎮</div>
           <div style="font-size:12px;font-weight:700;color:#7c3aed;">Quiz</div>
         </button>
+        <button onclick="showCap('podcast')" style="background:rgba(255,255,255,0.92);border:none;border-radius:14px;padding:16px 8px;cursor:pointer;text-align:center;font-family:inherit;transition:transform .15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+          <div style="font-size:28px;margin-bottom:6px;">🎙️</div>
+          <div style="font-size:12px;font-weight:700;color:#b45309;">Podcast</div>
+        </button>
       </div>
     </div>
   </div>
@@ -196,6 +200,25 @@ textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(29,122,90,.0
     <video controls style="width:100%;border-radius:10px;" preload="metadata">
       <source src="video_inocuidad.mp4" type="video/mp4">
     </video>
+  </div>
+</div>
+
+<!-- PANTALLA PODCAST -->
+<div id="scr-podcast" style="display:none;padding:20px 16px;max-width:760px;margin:0 auto;position:relative;z-index:1;">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+    <button onclick="hideCap()" style="background:rgba(255,255,255,0.9);border:none;border-radius:50px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;color:#0f4c3a;font-family:inherit;">← Volver</button>
+    <div style="font-size:16px;font-weight:800;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,0.5);">🎙️ Podcast</div>
+  </div>
+  <div style="background:rgba(255,255,255,0.97);border-radius:14px;padding:20px;">
+    <div style="text-align:center;margin-bottom:16px;">
+      <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#0f4c3a,#22a67a);display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 12px;">🎙️</div>
+      <div style="font-size:16px;font-weight:800;color:#0f4c3a;margin-bottom:4px;">Implementación real de la ISO 22000</div>
+      <div style="font-size:12px;color:#64748b;">OLEOFLORES · Inocuidad Alimentaria</div>
+    </div>
+    <audio controls style="width:100%;margin-top:10px;border-radius:10px;">
+      <source src="podcast_iso22000.mp3" type="audio/mpeg">
+    </audio>
+    <p style="font-size:12px;color:#64748b;margin-top:12px;text-align:center;">🎧 Usa audífonos para una mejor experiencia</p>
   </div>
 </div>
 
@@ -570,7 +593,7 @@ document.addEventListener("click",function startAudio(){
 renderSelector();
 
 // ── Capacitación ──
-const CAP_SCREENS = ['scr-infografia','scr-video','scr-quiz'];
+const CAP_SCREENS = ['scr-infografia','scr-video','scr-quiz','scr-podcast'];
 function showCap(tipo){
   ['scr-sel','scr-survey','scr-result',...CAP_SCREENS].forEach(s=>{
     const el=document.getElementById(s);
