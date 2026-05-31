@@ -100,7 +100,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', syste
 .hero-stat-lbl { font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
 
 /* METRICS GRID */
-.metrics { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 24px; }
+.metrics { display: grid; grid-template-columns: repeat(auto-fill,minmax(160px,1fr)); gap: 14px; margin-bottom: 24px; }
 .metric-card { background: var(--white); border: 1px solid var(--border); border-radius: 14px; padding: 18px; display: flex; align-items: center; gap: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); transition: transform 0.15s, box-shadow 0.15s; cursor: default; }
 .metric-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.1); }
 .metric-icon { width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
@@ -460,7 +460,7 @@ body.is-admin hr.admin-only { display: block !important; }
 
   <hr class="sidebar-divider">
   <div class="nav-section admin-only">Panel Admin</div>
-  <div class="nav-item admin-only" onclick="showPage('admin')"><span class="nav-icon">🛡</span> Todas las inspecciones</div>
+  <div class="nav-item admin-only" onclick="showPage('admin')"><span class="nav-icon">🛡</span> Todas las encuestas</div>
 
   <hr class="sidebar-divider">
 
@@ -632,7 +632,7 @@ body.is-admin hr.admin-only { display: block !important; }
   <div class="page-header">
     <div>
       <div class="page-title">🛡 Panel de Administrador</div>
-      <div class="page-sub">Todas las inspecciones enviadas · Tiempo real</div>
+      <div class="page-sub">Todas las encuestas enviadas · Tiempo real</div>
     </div>
     <div class="page-actions">
       <button class="btn btn-outline btn-sm" onclick="cargarInspecciones()">🔄 Actualizar</button>
@@ -668,14 +668,14 @@ body.is-admin hr.admin-only { display: block !important; }
   <div id="admin-empty" style="text-align:center;padding:48px;color:var(--muted);display:none;">
     <div style="font-size:48px;margin-bottom:12px;">📋</div>
     <div style="font-size:16px;font-weight:700;margin-bottom:6px;">Sin inspecciones aún</div>
-    <div style="font-size:13px;">Las inspecciones enviadas aparecerán aquí en tiempo real.</div>
+    <div style="font-size:13px;">Las encuestas enviadas aparecerán aquí en tiempo real.</div>
   </div>
   <div id="admin-error" style="display:none;background:#fef2f2;border:1px solid #fca5a5;border-radius:12px;padding:16px 20px;margin-bottom:16px;color:#dc2626;font-size:13px;"></div>
 
   <!-- Tabla de inspecciones -->
   <div class="card" id="admin-table-wrap" style="display:none;overflow-x:auto;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-      <div class="card-title" style="margin-bottom:0;">📋 Inspecciones enviadas</div>
+      <div class="card-title" style="margin-bottom:0;">📋 Encuestas enviadas</div>
     </div>
     <table style="width:100%;border-collapse:collapse;" id="admin-table">
       <thead>
@@ -1133,7 +1133,7 @@ async function enviarInspeccionASupabase(area) {
     localStorage.setItem(LS_KEY, JSON.stringify(sinFotos));
 
     toast('✅ Inspección guardada en la nube ☁️');
-    console.log('[SUPABASE] Inspección enviada:', inspeccionId);
+    console.log('[SUPABASE] Encuesta enviada:', inspeccionId);
 
   } catch(e) {
     console.error('[SUPABASE] ERROR:', e);
@@ -1743,7 +1743,7 @@ function showResultPage(a) {
   const total = Object.keys(ans).length;
   const pct = total>0?Math.round((ok/a.preguntas.length)*100):0;
 
-  document.getElementById('result-title').textContent = `${a.icono} ${a.nombre} — Inspección enviada`;
+  document.getElementById('result-title').textContent = `${a.icono} ${a.nombre} — Encuesta enviada`;
   document.getElementById('result-sub').textContent = `${new Date().toLocaleString('es-CO')} · ${NIVELES[a.nivel]}`;
 
   document.getElementById('result-stats').innerHTML = [
@@ -2530,12 +2530,14 @@ function renderAdminMetrics(list) {
   const hoyCount = list.filter(i => (i.created_at||'').slice(0,10) === hoy).length;
   const promPct = total > 0 ? Math.round(list.reduce((s,i) => s + (i.pct_cumplimiento||0), 0) / total) : 0;
   const areas = new Set(list.map(i => i.area_id)).size;
+  const personas = total; // cada encuesta = una persona que respondió
 
   document.getElementById('admin-metrics').innerHTML = [
-    { icon:'📋', label:'Total inspecciones', val:total, color:'#0f4c3a', bg:'#e6f7f2' },
+    { icon:'📋', label:'Total encuestas', val:total, color:'#0f4c3a', bg:'#e6f7f2' },
+    { icon:'👥', label:'Personas que respondieron', val:personas, color:'#0891b2', bg:'#ecfeff' },
     { icon:'📅', label:'Enviadas hoy', val:hoyCount, color:'#2563eb', bg:'#eff6ff' },
     { icon:'📊', label:'% Cumplimiento promedio', val:promPct+'%', color: promPct>=80?'#16a34a':promPct>=50?'#d97706':'#dc2626', bg: promPct>=80?'#f0fdf4':promPct>=50?'#fffbeb':'#fef2f2' },
-    { icon:'🏭', label:'Áreas inspeccionadas', val:areas, color:'#7c3aed', bg:'#f5f3ff' },
+    { icon:'🏭', label:'Áreas encuestadas', val:areas, color:'#7c3aed', bg:'#f5f3ff' },
   ].map(m => `<div class="metric-card">
     <div class="metric-icon" style="background:${m.bg};color:${m.color}">${m.icon}</div>
     <div><div class="metric-label">${m.label}</div><div class="metric-val" style="color:${m.color}">${m.val}</div></div>
@@ -2556,7 +2558,7 @@ function filtrarInspecciones() {
   });
 
   document.getElementById('admin-loading').style.display = 'none';
-  document.getElementById('admin-count-label').textContent = list.length + ' inspección(es)';
+  document.getElementById('admin-count-label').textContent = list.length + ' encuesta(s)';
 
   if (list.length === 0) {
     document.getElementById('admin-empty').style.display = 'block';
