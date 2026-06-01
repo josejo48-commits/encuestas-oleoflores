@@ -53,7 +53,7 @@ body{background:#0f4c3a;color:var(--text);font-family:'Segoe UI',system-ui,sans-
 .qnum{width:26px;height:26px;border-radius:50%;background:var(--accent-light);color:var(--accent);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .qcat{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px;}
 .qtxt{font-size:13px;font-weight:600;color:var(--text);line-height:1.5;}
-.opts{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.opts{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;}
 .obtn{background:#f8fafc;border:1.5px solid var(--border);border-radius:9px;padding:10px 12px;font-size:12px;font-weight:500;cursor:pointer;text-align:left;color:var(--text);transition:all .15s;font-family:inherit;display:flex;align-items:center;gap:8px;}
 .obtn:hover{border-color:var(--accent);background:var(--accent-light);}
 .obtn.s-ok{border-color:var(--green);background:var(--green-bg);color:var(--green);font-weight:700;}
@@ -67,7 +67,7 @@ body{background:#0f4c3a;color:var(--text);font-family:'Segoe UI',system-ui,sans-
 .nc-ttl{font-size:11px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:5px;}
 .nc-ttl.ok{color:var(--amber);}
 .nc-ttl.bad{color:var(--red);}
-.nc-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.nc-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px;}
 .nc-lbl{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px;}
 textarea{width:100%;border:1px solid var(--border);border-radius:8px;padding:9px 11px;font-size:12px;color:var(--text);font-family:inherit;outline:none;resize:vertical;min-height:65px;transition:border .15s;}
 textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(29,122,90,.08);}
@@ -159,7 +159,7 @@ textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(29,122,90,.0
     <div id="cap-section">
     <div style="margin-top:20px;">
       <div style="font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,0.7);margin-bottom:12px;">📚 Centro de Capacitación</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
         <button onclick="showCap('infografia')" style="background:rgba(255,255,255,0.92);border:none;border-radius:14px;padding:16px 8px;cursor:pointer;text-align:center;font-family:inherit;transition:transform .15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
           <div style="font-size:28px;margin-bottom:6px;">🖼</div>
           <div style="font-size:12px;font-weight:700;color:#0f4c3a;">Infografías</div>
@@ -176,10 +176,9 @@ textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(29,122,90,.0
           <div style="font-size:28px;margin-bottom:6px;">🎙️</div>
           <div style="font-size:12px;font-weight:700;color:#b45309;">Podcast</div>
         </button>
-        <button onclick="window.open('bio_defenders.html','_blank')" style="background:linear-gradient(135deg,#0f172a,#1e1b4b);border:2px solid #7c3aed;border-radius:14px;padding:16px 8px;cursor:pointer;text-align:center;font-family:inherit;transition:transform .15s;grid-column:1/-1;box-shadow:0 0 18px rgba(124,58,237,0.4);" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-          <div style="font-size:32px;margin-bottom:6px;">🦠</div>
-          <div style="font-size:13px;font-weight:700;color:#a78bfa;">🕹️ Juegos</div>
-          <div style="font-size:10px;color:rgba(167,139,250,0.7);margin-top:3px;">¡Defiende la planta de los patógenos!</div>
+        <button onclick="showCap('juego')" style="background:rgba(255,255,255,0.92);border:none;border-radius:14px;padding:16px 8px;cursor:pointer;text-align:center;font-family:inherit;transition:transform .15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+          <div style="font-size:28px;margin-bottom:6px;">🕹️</div>
+          <div style="font-size:12px;font-weight:700;color:#7c3aed;">Juegos</div>
         </button>
       </div>
     </div>
@@ -245,6 +244,30 @@ textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(29,122,90,.0
       <source src="podcast_iso22000.mp3" type="audio/mpeg">
     </audio>
     <p style="font-size:12px;color:#64748b;margin-top:12px;text-align:center;">🎧 Usa audífonos para una mejor experiencia</p>
+  </div>
+</div>
+
+<!-- PANTALLA JUEGO -->
+<div id="scr-juego" style="display:none;padding:20px 16px;max-width:760px;margin:0 auto;position:relative;z-index:1;">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+    <button onclick="hideCap()" style="background:rgba(255,255,255,0.9);border:none;border-radius:50px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;color:#0f4c3a;font-family:inherit;">← Volver</button>
+    <div style="font-size:16px;font-weight:800;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,0.5);">🕹️ Juegos</div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+    <!-- Bio-Defenders -->
+    <div onclick="window.open('bio_defenders.html','_blank')" style="background:linear-gradient(145deg,#0d1f3c,#0a1628);border:2px solid rgba(0,229,200,0.35);border-radius:18px;padding:20px 14px;text-align:center;cursor:pointer;transition:transform .18s,box-shadow .18s;box-shadow:0 4px 20px rgba(0,229,200,0.1);" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 28px rgba(0,229,200,0.25)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 20px rgba(0,229,200,0.1)'">
+      <div style="font-size:42px;margin-bottom:8px;">🦠</div>
+      <div style="font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;color:#00e5c8;letter-spacing:1px;margin-bottom:6px;">BIO-DEFENDERS</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.5);line-height:1.5;">Elimina los patógenos antes de que contaminen la producción</div>
+      <div style="margin-top:12px;background:rgba(0,229,200,0.12);border-radius:20px;padding:6px 12px;display:inline-block;font-size:10px;color:#00e5c8;font-weight:700;">▶ JUGAR</div>
+    </div>
+    <!-- Memoria -->
+    <div onclick="window.open('memoria_inocuidad.html','_blank')" style="background:linear-gradient(145deg,#1a0d3c,#0d0a28);border:2px solid rgba(155,89,182,0.35);border-radius:18px;padding:20px 14px;text-align:center;cursor:pointer;transition:transform .18s,box-shadow .18s;box-shadow:0 4px 20px rgba(155,89,182,0.1);" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 28px rgba(155,89,182,0.25)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 20px rgba(155,89,182,0.1)'">
+      <div style="font-size:42px;margin-bottom:8px;">🧬</div>
+      <div style="font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;color:#9b59b6;letter-spacing:1px;margin-bottom:6px;">MEMORIA</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.5);line-height:1.5;">Encuentra los pares y aprende sobre inocuidad alimentaria</div>
+      <div style="margin-top:12px;background:rgba(155,89,182,0.12);border-radius:20px;padding:6px 12px;display:inline-block;font-size:10px;color:#9b59b6;font-weight:700;">▶ JUGAR</div>
+    </div>
   </div>
 </div>
 
@@ -640,7 +663,7 @@ document.addEventListener("click",function startAudio(){
 renderSelector();
 
 // ── Capacitación ──
-const CAP_SCREENS = ['scr-infografia','scr-video','scr-quiz','scr-podcast'];
+const CAP_SCREENS = ['scr-infografia','scr-video','scr-quiz','scr-podcast','scr-juego'];
 function showCap(tipo){
   ['scr-sel','scr-survey','scr-result',...CAP_SCREENS].forEach(s=>{
     const el=document.getElementById(s);
@@ -716,7 +739,7 @@ function renderQuiz(){
       <div style="font-size:14px;margin:6px 0;">${qState.score} de ${qState.list.length} correctas</div>
       <div style="font-size:13px;opacity:.85;">${msg}</div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;">
       <div style="background:var(--white);border:1px solid var(--border);border-radius:13px;padding:16px;text-align:center;">
         <div style="font-size:32px;font-weight:800;color:#16a34a;">${qState.score}</div>
         <div style="font-size:11px;color:var(--muted);">CORRECTAS</div>
