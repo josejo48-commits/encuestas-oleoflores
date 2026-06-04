@@ -115,17 +115,19 @@ body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', syste
 .hamburger { display: none; background: none; border: none; color: #fff; font-size: 22px; cursor: pointer; padding: 4px 8px; margin-right: 4px; }
 @media(max-width: 768px) {
   .hamburger { display: flex; align-items: center; }
-  .sidebar { position: fixed; top: 52px; left: 0; height: calc(100vh - 52px); z-index: 300; transform: translateX(-100%); transition: transform 0.28s cubic-bezier(.4,0,.2,1); }
+  .sidebar { position: fixed; top: 52px; left: 0; width: 260px; height: calc(100vh - 52px); z-index: 300; transform: translateX(-100%); transition: transform 0.28s cubic-bezier(.4,0,.2,1); }
   .sidebar.open { transform: translateX(0); }
+  .sidebar-overlay { display: none; position: fixed; inset: 0; top: 52px; z-index: 299; background: rgba(0,0,0,0.5); }
   .sidebar-overlay.open { display: block; }
   .topbar-center { display: none; }
   .topbar-date { display: none; }
   .layout { display: block; }
   .main { padding: 12px; max-width: 100vw; overflow-x: hidden; box-sizing: border-box; }
+  .topbar-hide-mobile { display: none !important; }
+  .topbar-right { gap: 6px; }
 }
 
-/* SIDEBAR */
-.sidebar { width: 230px; background: var(--sidebar-bg); border-right: none; padding: 16px 10px; position: sticky; top: 58px; height: calc(100vh - 58px); overflow-y: auto; flex-shrink: 0; }
+/* SIDEBAR NAV STYLES */
 .nav-section { font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.4); letter-spacing: 1.2px; text-transform: uppercase; padding: 10px 12px 5px; }
 .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 9px; cursor: pointer; margin-bottom: 2px; font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.75); transition: all 0.15s; }
 .nav-item:hover { background: rgba(255,255,255,0.12); color: #fff; }
@@ -141,7 +143,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', syste
 .sidebar-divider { border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 10px 12px; }
 
 /* MAIN */
-.main { flex: 1; padding: 24px; overflow-x: hidden; min-width: 0; }
+.main { flex: 1; padding: 24px; overflow-x: hidden; min-width: 0; max-width: 100%; }
 
 /* PAGE */
 .page { display: none; animation: fadeSlideUp 0.3s ease both; }
@@ -501,11 +503,11 @@ body.is-admin hr.admin-only { display: block !important; }
   </div>
   <div class="topbar-right">
     <div class="topbar-date" id="fecha-top"></div>
-    <button class="topbar-save admin-only" onclick="exportarResumen()">📥 Exportar PDF</button>
-    <button class="topbar-save" onclick="volverAlSelector()" style="background:rgba(255,255,255,0.1);">← Cambiar área</button>
+    <button class="topbar-save admin-only topbar-hide-mobile" onclick="exportarResumen()">📥 Exportar PDF</button>
+    <button class="topbar-save topbar-hide-mobile" onclick="volverAlSelector()" style="background:rgba(255,255,255,0.1);">← Cambiar área</button>
     <div class="user-badge admin-only" id="user-badge" onclick="toggleUserDropdown()">
       <div class="user-avatar" id="topbar-avatar">A</div>
-      <div>
+      <div class="topbar-hide-mobile">
         <div class="user-name" id="topbar-username">Admin</div>
       </div>
     </div>
@@ -534,6 +536,8 @@ body.is-admin hr.admin-only { display: block !important; }
   <div class="nav-section">Acciones</div>
   <div class="nav-item" onclick="openAddArea();closeSidebar()"><span class="nav-icon">➕</span> Nueva Área</div>
   <div class="nav-item" onclick="openAddPregunta();closeSidebar()"><span class="nav-icon">❓</span> Nueva Pregunta</div>
+  <div class="nav-item admin-only" onclick="exportarResumen();closeSidebar()"><span class="nav-icon">📥</span> Exportar PDF</div>
+  <div class="nav-item" onclick="volverAlSelector();closeSidebar()"><span class="nav-icon">←</span> Cambiar área</div>
 </div>
 
 <!-- MAIN -->
