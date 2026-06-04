@@ -680,20 +680,19 @@ body.is-admin hr.admin-only { display: block !important; }
 
   <!-- Filtros -->
   <div class="card" style="margin-bottom:16px;padding:14px 20px;">
-    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
-      <div style="font-size:13px;font-weight:700;color:var(--muted);">Filtrar:</div>
-      <select id="filtro-area" onchange="filtrarInspecciones()" style="font-size:12px;padding:6px 10px;min-width:160px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:center;" class="filtros-grid">
+      <select id="filtro-area" onchange="filtrarInspecciones()" style="font-size:12px;padding:8px 10px;width:100%;border:1px solid var(--border);border-radius:8px;">
         <option value="">Todas las áreas</option>
       </select>
-      <select id="filtro-estado" onchange="filtrarInspecciones()" style="font-size:12px;padding:6px 10px;">
+      <select id="filtro-estado" onchange="filtrarInspecciones()" style="font-size:12px;padding:8px 10px;width:100%;border:1px solid var(--border);border-radius:8px;">
         <option value="">Todos los estados</option>
         <option value="100">100% Completo</option>
         <option value="parcial">Parcial</option>
       </select>
-      <input type="date" id="filtro-fecha" onchange="filtrarInspecciones()" style="font-size:12px;padding:6px 10px;">
-      <button class="btn btn-ghost btn-sm" onclick="limpiarFiltros()">✕ Limpiar</button>
-      <div style="margin-left:auto;font-size:12px;color:var(--muted);" id="admin-count-label"></div>
+      <input type="date" id="filtro-fecha" onchange="filtrarInspecciones()" style="font-size:12px;padding:8px 10px;width:100%;border:1px solid var(--border);border-radius:8px;box-sizing:border-box;">
+      <button class="btn btn-ghost btn-sm" onclick="limpiarFiltros()" style="width:100%;padding:8px;">✕ Limpiar filtros</button>
     </div>
+    <div style="margin-top:8px;font-size:12px;color:var(--muted);" id="admin-count-label"></div>
   </div>
 
   <!-- Estado de carga -->
@@ -709,22 +708,11 @@ body.is-admin hr.admin-only { display: block !important; }
   <div id="admin-error" style="display:none;background:#fef2f2;border:1px solid #fca5a5;border-radius:12px;padding:16px 20px;margin-bottom:16px;color:#dc2626;font-size:13px;"></div>
 
   <!-- Tabla de inspecciones -->
-  <div class="card" id="admin-table-wrap" style="display:none;overflow-x:auto;">
+  <div class="card" id="admin-table-wrap" style="display:none;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
       <div class="card-title" style="margin-bottom:0;">📋 Inspecciones enviadas</div>
     </div>
-    <table style="width:100%;border-collapse:collapse;" id="admin-table">
-      <thead>
-        <tr style="border-bottom:2px solid var(--border);">
-          <th style="text-align:left;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;padding:8px 12px;">Área</th>
-          <th style="text-align:left;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;padding:8px 12px;">Inspector</th>
-          <th style="text-align:left;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;padding:8px 12px;">Fecha y hora</th>
-          <th style="text-align:left;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;padding:8px 12px;">% Cumplimiento</th>
-          <th style="text-align:left;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;padding:8px 12px;">Detalle</th>
-        </tr>
-      </thead>
-      <tbody id="admin-tbody"></tbody>
-    </table>
+    <div id="admin-tbody"></div>
   </div>
 
   <!-- Modal detalle inspección -->
@@ -2643,25 +2631,21 @@ function filtrarInspecciones() {
     }) : '—';
     const area = AREAS.find(a => a.id === i.area_id);
     const icono = area ? area.icono : '🏭';
-    return `<tr style="border-bottom:1px solid var(--border);">
-      <td style="padding:12px;font-size:13px;font-weight:600;">${icono} ${i.area_nombre || '—'}</td>
-      <td style="padding:12px;font-size:13px;">
-        <div style="font-weight:600;">👤 ${i.inspector_nombre || 'Anónimo'}</div>
-        <div style="font-size:11px;color:var(--muted);">${i.inspector_cargo || ''}${i.inspector_jefe ? ' · Jefe: '+i.inspector_jefe : ''}</div>
-      </td>
-      <td style="padding:12px;font-size:12px;color:var(--muted);">${fecha}</td>
-      <td style="padding:12px;">
-        <div style="display:flex;align-items:center;gap:8px;">
-          <div style="flex:1;height:8px;background:#f1f5f9;border-radius:100px;overflow:hidden;min-width:60px;">
-            <div style="height:100%;width:${pct}%;background:${col};border-radius:100px;"></div>
-          </div>
-          <span style="font-size:13px;font-weight:700;color:${col};">${pct}%</span>
-        </div>
-      </td>
-      <td style="padding:12px;">
+    return `<div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="font-size:14px;font-weight:700;">${icono} ${i.area_nombre || '—'}</div>
         <button class="btn btn-ghost btn-sm" onclick="verDetalleInspeccion('${i.id}')">🔍 Ver</button>
-      </td>
-    </tr>`;
+      </div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:2px;">👤 ${i.inspector_nombre || 'Anónimo'}</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">${i.inspector_cargo || ''}${i.inspector_jefe ? ' · Jefe: '+i.inspector_jefe : ''}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+        <div style="flex:1;height:8px;background:#f1f5f9;border-radius:100px;overflow:hidden;">
+          <div style="height:100%;width:${pct}%;background:${col};border-radius:100px;"></div>
+        </div>
+        <span style="font-size:13px;font-weight:700;color:${col};white-space:nowrap;">${pct}%</span>
+        <span style="font-size:11px;color:var(--muted);white-space:nowrap;">${fecha}</span>
+      </div>
+    </div>`;
   }).join('');
 }
 
