@@ -489,9 +489,9 @@ body.is-admin hr.admin-only { display: block !important; }
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
 <div class="sidebar" id="sidebar">
   <div class="nav-section">Navegación</div>
-  <div class="nav-item active" onclick="showPage('dashboard')"><span class="nav-icon">📊</span> Dashboard</div>
-  <div class="nav-item" onclick="showPage('areas')"><span class="nav-icon">🏭</span> Todas las Áreas</div>
-  <div class="nav-item" onclick="showPage('consolidado')"><span class="nav-icon">📋</span> Consolidado</div>
+  <div class="nav-item active" onclick="showPage('dashboard');closeSidebar()"><span class="nav-icon">📊</span> Dashboard</div>
+  <div class="nav-item" onclick="showPage('areas');closeSidebar()"><span class="nav-icon">🏭</span> Todas las Áreas</div>
+  <div class="nav-item" onclick="showPage('consolidado');closeSidebar()"><span class="nav-icon">📋</span> Consolidado</div>
 
   <hr class="sidebar-divider">
   <div class="nav-section">Áreas de Inspección</div>
@@ -499,12 +499,12 @@ body.is-admin hr.admin-only { display: block !important; }
 
   <hr class="sidebar-divider">
   <div class="nav-section admin-only">Panel Admin</div>
-  <div class="nav-item admin-only" onclick="showPage('admin')"><span class="nav-icon">🛡</span> Todas las inspecciones</div>
+  <div class="nav-item admin-only" onclick="showPage('admin');closeSidebar()"><span class="nav-icon">🛡</span> Todas las inspecciones</div>
 
   <hr class="sidebar-divider">
   <div class="nav-section">Acciones</div>
-  <div class="nav-item" onclick="openAddArea()"><span class="nav-icon">➕</span> Nueva Área</div>
-  <div class="nav-item" onclick="openAddPregunta()"><span class="nav-icon">❓</span> Nueva Pregunta</div>
+  <div class="nav-item" onclick="openAddArea();closeSidebar()"><span class="nav-icon">➕</span> Nueva Área</div>
+  <div class="nav-item" onclick="openAddPregunta();closeSidebar()"><span class="nav-icon">❓</span> Nueva Pregunta</div>
 </div>
 
 <!-- MAIN -->
@@ -1244,7 +1244,7 @@ function renderSidebar() {
   el.innerHTML = AREAS.map(a => {
     const done = isAreaDone(a);
     const pct = getAreaPct(a);
-    return `<div class="sidebar-area-btn ${CURRENT_AREA===a.id?'active':''}" onclick="openSurvey('${a.id}')">
+    return `<div class="sidebar-area-btn ${CURRENT_AREA===a.id?'active':''}" onclick="openSurvey('${a.id}');closeSidebar()">
       <span style="color:${a.color}">${a.icono}</span>
       <span style="flex:1">${a.nombre}</span>
       ${done ? '<span class="nav-badge-ok">✓</span>' : pct > 0 ? `<span style="font-size:10px;color:rgba(255,255,255,0.5)">${pct}%</span>` : ''}
@@ -1570,7 +1570,7 @@ function renderAreaCard(a, compact) {
   const nc = Object.values(ANSWERS[a.id]||{}).filter(x=>x.value==='nc').length;
   const bad = Object.values(ANSWERS[a.id]||{}).filter(x=>x.value==='bad').length;
   const colPct = pct===100?'#16a34a':pct>0?'#d97706':'#94a3b8';
-  return `<div class="area-card" onclick="openSurvey('${a.id}')">
+  return `<div class="area-card" onclick="openSurvey('${a.id}');closeSidebar()">
     <div class="area-card-banner" style="background:${a.color};"></div>
     <div class="area-card-img-wrap">
       ${(function(){
