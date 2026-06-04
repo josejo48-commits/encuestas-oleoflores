@@ -350,47 +350,7 @@ body.is-admin hr.admin-only { display: block !important; }
 .user-list-item:last-child { border-bottom:none; }
 .user-list-avatar { width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;flex-shrink:0; }
 
-/* ── MOBILE ── */
-@media(max-width:768px){
-  .topbar{padding:0 10px!important;height:52px!important;gap:6px!important;}
-  .logo-sub{display:none!important;}
-  .logo-icon{width:32px!important;height:32px!important;font-size:16px!important;}
-  .topbar-center{display:none!important;}
-  .topbar-date{display:none!important;}
-  .topbar-save{display:none!important;}
-  .user-name{display:none!important;}
-  .hamburger{display:flex!important;}
-  .layout{display:block!important;}
-  .sidebar{position:fixed!important;top:52px!important;left:0!important;width:260px!important;height:calc(100vh - 52px)!important;z-index:300!important;transform:translateX(-100%)!important;transition:transform 0.28s ease!important;}
-  .sidebar.open{transform:translateX(0)!important;}
-  .sidebar-overlay{display:none;position:fixed;inset:0;top:52px;background:rgba(0,0,0,0.5);z-index:299;}
-  .sidebar-overlay.open{display:block!important;}
-  .main{padding:12px!important;max-width:100vw!important;overflow-x:hidden!important;box-sizing:border-box!important;}
-  .metrics{grid-template-columns:1fr 1fr!important;gap:8px!important;}
-  .areas-grid{grid-template-columns:1fr!important;}
-  .table-wrap{overflow-x:auto!important;-webkit-overflow-scrolling:touch!important;}
-  table{min-width:420px;font-size:12px;}
-  .page-header{flex-direction:column!important;gap:8px!important;align-items:flex-start!important;}
-  .page-actions{width:100%!important;flex-wrap:wrap!important;gap:6px!important;}
-  .form-grid{grid-template-columns:1fr!important;}
-  .survey-layout{grid-template-columns:1fr!important;}
-  .result-grid{grid-template-columns:1fr 1fr!important;}
-  .hero-card{padding:14px!important;}
-  .hero-title{font-size:15px!important;}
-  .hero-desc{font-size:12px!important;}
-  .dash-two-col{grid-template-columns:1fr!important;}
-}
-@media(max-width:480px){
-  .metrics{grid-template-columns:1fr!important;}
-  .result-grid{grid-template-columns:1fr!important;}
-}
-@media(min-width:769px){
-  .hamburger{display:none!important;}
-}
-
 </style>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 </head>
 <body>
 
@@ -457,7 +417,6 @@ body.is-admin hr.admin-only { display: block !important; }
 
 <!-- TOPBAR -->
 <div class="topbar">
-  <button class="hamburger" onclick="toggleSidebar()" style="display:none;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.2);border-radius:8px;color:#fff;font-size:20px;cursor:pointer;width:36px;height:36px;align-items:center;justify-content:center;flex-shrink:0;">☰</button>
   <div class="logo-wrap">
     <div class="logo-icon">🛡️</div>
     <div>
@@ -486,12 +445,11 @@ body.is-admin hr.admin-only { display: block !important; }
 <div class="layout">
 
 <!-- SIDEBAR -->
-<div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
 <div class="sidebar" id="sidebar">
   <div class="nav-section">Navegación</div>
-  <div class="nav-item active" onclick="showPage('dashboard');closeSidebar()"><span class="nav-icon">📊</span> Dashboard</div>
-  <div class="nav-item" onclick="showPage('areas');closeSidebar()"><span class="nav-icon">🏭</span> Todas las Áreas</div>
-  <div class="nav-item" onclick="showPage('consolidado');closeSidebar()"><span class="nav-icon">📋</span> Consolidado</div>
+  <div class="nav-item active" onclick="showPage('dashboard')"><span class="nav-icon">📊</span> Dashboard</div>
+  <div class="nav-item" onclick="showPage('areas')"><span class="nav-icon">🏭</span> Todas las Áreas</div>
+  <div class="nav-item" onclick="showPage('consolidado')"><span class="nav-icon">📋</span> Consolidado</div>
 
   <hr class="sidebar-divider">
   <div class="nav-section">Áreas de Inspección</div>
@@ -499,12 +457,12 @@ body.is-admin hr.admin-only { display: block !important; }
 
   <hr class="sidebar-divider">
   <div class="nav-section admin-only">Panel Admin</div>
-  <div class="nav-item admin-only" onclick="showPage('admin');closeSidebar()"><span class="nav-icon">🛡</span> Todas las inspecciones</div>
+  <div class="nav-item admin-only" onclick="showPage('admin')"><span class="nav-icon">🛡</span> Todas las inspecciones</div>
 
   <hr class="sidebar-divider">
   <div class="nav-section">Acciones</div>
-  <div class="nav-item" onclick="openAddArea();closeSidebar()"><span class="nav-icon">➕</span> Nueva Área</div>
-  <div class="nav-item" onclick="openAddPregunta();closeSidebar()"><span class="nav-icon">❓</span> Nueva Pregunta</div>
+  <div class="nav-item" onclick="openAddArea()"><span class="nav-icon">➕</span> Nueva Área</div>
+  <div class="nav-item" onclick="openAddPregunta()"><span class="nav-icon">❓</span> Nueva Pregunta</div>
 </div>
 
 <!-- MAIN -->
@@ -680,19 +638,20 @@ body.is-admin hr.admin-only { display: block !important; }
 
   <!-- Filtros -->
   <div class="card" style="margin-bottom:16px;padding:14px 20px;">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:center;" class="filtros-grid">
-      <select id="filtro-area" onchange="filtrarInspecciones()" style="font-size:12px;padding:8px 10px;width:100%;border:1px solid var(--border);border-radius:8px;">
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+      <div style="font-size:13px;font-weight:700;color:var(--muted);">Filtrar:</div>
+      <select id="filtro-area" onchange="filtrarInspecciones()" style="font-size:12px;padding:6px 10px;min-width:160px;">
         <option value="">Todas las áreas</option>
       </select>
-      <select id="filtro-estado" onchange="filtrarInspecciones()" style="font-size:12px;padding:8px 10px;width:100%;border:1px solid var(--border);border-radius:8px;">
+      <select id="filtro-estado" onchange="filtrarInspecciones()" style="font-size:12px;padding:6px 10px;">
         <option value="">Todos los estados</option>
         <option value="100">100% Completo</option>
         <option value="parcial">Parcial</option>
       </select>
-      <input type="date" id="filtro-fecha" onchange="filtrarInspecciones()" style="font-size:12px;padding:8px 10px;width:100%;border:1px solid var(--border);border-radius:8px;box-sizing:border-box;">
-      <button class="btn btn-ghost btn-sm" onclick="limpiarFiltros()" style="width:100%;padding:8px;">✕ Limpiar filtros</button>
+      <input type="date" id="filtro-fecha" onchange="filtrarInspecciones()" style="font-size:12px;padding:6px 10px;">
+      <button class="btn btn-ghost btn-sm" onclick="limpiarFiltros()">✕ Limpiar</button>
+      <div style="margin-left:auto;font-size:12px;color:var(--muted);" id="admin-count-label"></div>
     </div>
-    <div style="margin-top:8px;font-size:12px;color:var(--muted);" id="admin-count-label"></div>
   </div>
 
   <!-- Estado de carga -->
@@ -708,11 +667,22 @@ body.is-admin hr.admin-only { display: block !important; }
   <div id="admin-error" style="display:none;background:#fef2f2;border:1px solid #fca5a5;border-radius:12px;padding:16px 20px;margin-bottom:16px;color:#dc2626;font-size:13px;"></div>
 
   <!-- Tabla de inspecciones -->
-  <div class="card" id="admin-table-wrap" style="display:none;">
+  <div class="card" id="admin-table-wrap" style="display:none;overflow-x:auto;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
       <div class="card-title" style="margin-bottom:0;">📋 Inspecciones enviadas</div>
     </div>
-    <div id="admin-tbody"></div>
+    <table style="width:100%;border-collapse:collapse;" id="admin-table">
+      <thead>
+        <tr style="border-bottom:2px solid var(--border);">
+          <th style="text-align:left;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;padding:8px 12px;">Área</th>
+          <th style="text-align:left;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;padding:8px 12px;">Inspector</th>
+          <th style="text-align:left;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;padding:8px 12px;">Fecha y hora</th>
+          <th style="text-align:left;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;padding:8px 12px;">% Cumplimiento</th>
+          <th style="text-align:left;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.7px;padding:8px 12px;">Detalle</th>
+        </tr>
+      </thead>
+      <tbody id="admin-tbody"></tbody>
+    </table>
   </div>
 
   <!-- Modal detalle inspección -->
@@ -1065,17 +1035,6 @@ async function subirFoto(inspeccionId, preguntaId, base64DataUrl) {
 // Fotos → Supabase Storage (URL pública permanente)
 const LS_KEY = 'inocuidad_answers_v4';
 
-function toggleSidebar(){
-  const s=document.getElementById('sidebar');
-  const o=document.getElementById('sidebar-overlay');
-  s.classList.toggle('open');
-  o.classList.toggle('open');
-}
-function closeSidebar(){
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('sidebar-overlay').classList.remove('open');
-}
-
 function saveAnswers() {
   // Guardar localmente (caché mientras se llena la encuesta)
   try {
@@ -1232,7 +1191,7 @@ function renderSidebar() {
   el.innerHTML = AREAS.map(a => {
     const done = isAreaDone(a);
     const pct = getAreaPct(a);
-    return `<div class="sidebar-area-btn ${CURRENT_AREA===a.id?'active':''}" onclick="openSurvey('${a.id}');closeSidebar()">
+    return `<div class="sidebar-area-btn ${CURRENT_AREA===a.id?'active':''}" onclick="openSurvey('${a.id}')">
       <span style="color:${a.color}">${a.icono}</span>
       <span style="flex:1">${a.nombre}</span>
       ${done ? '<span class="nav-badge-ok">✓</span>' : pct > 0 ? `<span style="font-size:10px;color:rgba(255,255,255,0.5)">${pct}%</span>` : ''}
@@ -1558,7 +1517,7 @@ function renderAreaCard(a, compact) {
   const nc = Object.values(ANSWERS[a.id]||{}).filter(x=>x.value==='nc').length;
   const bad = Object.values(ANSWERS[a.id]||{}).filter(x=>x.value==='bad').length;
   const colPct = pct===100?'#16a34a':pct>0?'#d97706':'#94a3b8';
-  return `<div class="area-card" onclick="openSurvey('${a.id}');closeSidebar()">
+  return `<div class="area-card" onclick="openSurvey('${a.id}')">
     <div class="area-card-banner" style="background:${a.color};"></div>
     <div class="area-card-img-wrap">
       ${(function(){
@@ -2528,41 +2487,24 @@ document.addEventListener('change', function(e) {
 
 
 // ═══════════════════════════════════════════════════════════════
+// PANEL ADMINISTRADOR — carga inspecciones desde Supabase
 // ═══════════════════════════════════════════════════════════════
-// PANEL ADMINISTRADOR — carga inspecciones desde Firebase
-// ═══════════════════════════════════════════════════════════════
-
-// Firebase config
-const firebaseConfig = {
-  apiKey: "AIzaSyDxpJdqMBqWsDw5bAYbwZsipz-4XGSadqw",
-  authDomain: "inocuidad-calidad.firebaseapp.com",
-  databaseURL: "https://inocuidad-calidad-default-rtdb.firebaseio.com",
-  projectId: "inocuidad-calidad",
-  storageBucket: "inocuidad-calidad.firebasestorage.app",
-  messagingSenderId: "808137553333",
-  appId: "1:808137553333:web:8f1c59182f070e2e44d5fc"
-};
-if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-let _fbListener = null;
 
 let _allInspecciones = [];
 
-function cargarInspecciones() {
+async function cargarInspecciones() {
   if (!SESSION || SESSION.rol !== 'admin') return;
   document.getElementById('admin-loading').style.display = 'block';
   document.getElementById('admin-empty').style.display = 'none';
   document.getElementById('admin-error').style.display = 'none';
   document.getElementById('admin-table-wrap').style.display = 'none';
 
-  if (_fbListener) db.ref('inspecciones').off('value', _fbListener);
+  try {
+    // Traer inspecciones ordenadas por fecha descendente
+    const data = await sbFetch('/rest/v1/inspecciones?select=*&order=created_at.desc');
+    _allInspecciones = data || [];
 
-  _fbListener = db.ref('inspecciones').on('value', (snapshot) => {
-    const data = snapshot.val();
-    _allInspecciones = data
-      ? Object.values(data).sort((a,b) => new Date(b.created_at) - new Date(a.created_at))
-      : [];
-
+    // Poblar filtro de áreas
     const areas = [...new Set(_allInspecciones.map(i => i.area_nombre))].sort();
     const sel = document.getElementById('filtro-area');
     const cur = sel.value;
@@ -2572,11 +2514,11 @@ function cargarInspecciones() {
     renderAdminMetrics(_allInspecciones);
     filtrarInspecciones();
 
-  }, (e) => {
+  } catch(e) {
     document.getElementById('admin-loading').style.display = 'none';
     document.getElementById('admin-error').style.display = 'block';
-    document.getElementById('admin-error').textContent = '⚠️ Error Firebase: ' + e.message;
-  });
+    document.getElementById('admin-error').textContent = '⚠️ Error al cargar: ' + e.message + ' — Verifica que las tablas de Supabase estén creadas.';
+  }
 }
 
 function renderAdminMetrics(list) {
@@ -2631,21 +2573,25 @@ function filtrarInspecciones() {
     }) : '—';
     const area = AREAS.find(a => a.id === i.area_id);
     const icono = area ? area.icono : '🏭';
-    return `<div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <div style="font-size:14px;font-weight:700;">${icono} ${i.area_nombre || '—'}</div>
-        <button class="btn btn-ghost btn-sm" onclick="verDetalleInspeccion('${i.id}')">🔍 Ver</button>
-      </div>
-      <div style="font-size:13px;font-weight:600;margin-bottom:2px;">👤 ${i.inspector_nombre || 'Anónimo'}</div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">${i.inspector_cargo || ''}${i.inspector_jefe ? ' · Jefe: '+i.inspector_jefe : ''}</div>
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
-        <div style="flex:1;height:8px;background:#f1f5f9;border-radius:100px;overflow:hidden;">
-          <div style="height:100%;width:${pct}%;background:${col};border-radius:100px;"></div>
+    return `<tr style="border-bottom:1px solid var(--border);">
+      <td style="padding:12px;font-size:13px;font-weight:600;">${icono} ${i.area_nombre || '—'}</td>
+      <td style="padding:12px;font-size:13px;">
+        <div style="font-weight:600;">👤 Anónimo</div>
+        <div style="font-size:11px;color:var(--muted);">${i.inspector_user || ''}</div>
+      </td>
+      <td style="padding:12px;font-size:12px;color:var(--muted);">${fecha}</td>
+      <td style="padding:12px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="flex:1;height:8px;background:#f1f5f9;border-radius:100px;overflow:hidden;min-width:60px;">
+            <div style="height:100%;width:${pct}%;background:${col};border-radius:100px;"></div>
+          </div>
+          <span style="font-size:13px;font-weight:700;color:${col};">${pct}%</span>
         </div>
-        <span style="font-size:13px;font-weight:700;color:${col};white-space:nowrap;">${pct}%</span>
-        <span style="font-size:11px;color:var(--muted);white-space:nowrap;">${fecha}</span>
-      </div>
-    </div>`;
+      </td>
+      <td style="padding:12px;">
+        <button class="btn btn-ghost btn-sm" onclick="verDetalleInspeccion('${i.id}')">🔍 Ver</button>
+      </td>
+    </tr>`;
   }).join('');
 }
 
