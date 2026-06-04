@@ -389,6 +389,8 @@ body.is-admin hr.admin-only { display: block !important; }
 }
 
 </style>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 </head>
 <body>
 
@@ -2538,24 +2540,41 @@ document.addEventListener('change', function(e) {
 
 
 // ═══════════════════════════════════════════════════════════════
-// PANEL ADMINISTRADOR — carga inspecciones desde Supabase
 // ═══════════════════════════════════════════════════════════════
+// PANEL ADMINISTRADOR — carga inspecciones desde Firebase
+// ═══════════════════════════════════════════════════════════════
+
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyDxpJdqMBqWsDw5bAYbwZsipz-4XGSadqw",
+  authDomain: "inocuidad-calidad.firebaseapp.com",
+  databaseURL: "https://inocuidad-calidad-default-rtdb.firebaseio.com",
+  projectId: "inocuidad-calidad",
+  storageBucket: "inocuidad-calidad.firebasestorage.app",
+  messagingSenderId: "808137553333",
+  appId: "1:808137553333:web:8f1c59182f070e2e44d5fc"
+};
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+let _fbListener = null;
 
 let _allInspecciones = [];
 
-async function cargarInspecciones() {
+function cargarInspecciones() {
   if (!SESSION || SESSION.rol !== 'admin') return;
   document.getElementById('admin-loading').style.display = 'block';
   document.getElementById('admin-empty').style.display = 'none';
   document.getElementById('admin-error').style.display = 'none';
   document.getElementById('admin-table-wrap').style.display = 'none';
 
-  try {
-    // Traer inspecciones ordenadas por fecha descendente
-    const data = await sbFetch('/rest/v1/inspecciones?select=*&order=created_at.desc');
-    _allInspecciones = data || [];
+  if (_fbListener) db.ref('inspecciones').off('value', _fbListener);
 
-    // Poblar filtro de áreas
+  _fbListener = db.ref('inspecciones').on('value', (snapshot) => {
+    const data = snapshot.val();
+    _allInspecciones = data
+      ? Object.values(data).sort((a,b) => new Date(b.created_at) - new Date(a.created_at))
+      : [];
+
     const areas = [...new Set(_allInspecciones.map(i => i.area_nombre))].sort();
     const sel = document.getElementById('filtro-area');
     const cur = sel.value;
@@ -2565,11 +2584,11 @@ async function cargarInspecciones() {
     renderAdminMetrics(_allInspecciones);
     filtrarInspecciones();
 
-  } catch(e) {
+  }, (e) => {
     document.getElementById('admin-loading').style.display = 'none';
     document.getElementById('admin-error').style.display = 'block';
-    document.getElementById('admin-error').textContent = '⚠️ Error al cargar: ' + e.message + ' — Verifica que las tablas de Supabase estén creadas.';
-  }
+    document.getElementById('admin-error').textContent = '⚠️ Error Firebase: ' + e.message;
+  });
 }
 
 function renderAdminMetrics(list) {
