@@ -371,16 +371,83 @@ const AREAS=[
   ]},
   {id:'margarina',nombre:'Margarina',icono:'🧈',nivel:'alto',imagen:'img_margarina.jpg',desc:'Producción de margarinas y shortenings',
    preguntas:[
-    {id:'m1',texto:'¿Los equipos de producción están correctamente limpios y sanitizados con registros respectivos?',cat:'Limpieza CIP',nivel:'critico'},
-    {id:'m2',texto:'¿Las materias primas están dentro de fecha de vencimiento y almacenadas correctamente?',cat:'Materias Primas',nivel:'critico'},
-    {id:'m3',texto:'¿Se realizan análisis microbiológicos periódicos al producto final dentro de límites establecidos?',cat:'Microbiología',nivel:'critico'},
-    {id:'m4',texto:'¿Los parámetros de textura, punto de fusión y humedad se controlan en cada lote de producción?',cat:'Control de Calidad',nivel:'alto'},
-    {id:'m5',texto:'¿El cuarto frío mantiene la temperatura requerida (≤10°C) con registro continuo?',cat:'Cadena de Frío',nivel:'critico'},
-    {id:'m6',texto:'¿El personal cumple estrictamente BPM: sin joyas, uniforme limpio, cabello cubierto, lavado de manos?',cat:'BPM',nivel:'alto'},
-    {id:'m7',texto:'¿Los aditivos se adicionan según formulación aprobada, con básculas calibradas y registros de pesaje?',cat:'Formulación',nivel:'alto'},
-    {id:'m8',texto:'¿El área está libre de plagas con registros vigentes del programa de control?',cat:'Control de Plagas',nivel:'alto'},
-    {id:'m9',texto:'¿El envasado se realiza en condiciones higiénicas con materiales aprobados para contacto alimentario?',cat:'Envasado',nivel:'alto'},
-    {id:'m10',texto:'¿Los lotes producidos tienen trazabilidad completa (número de lote, fecha, código operario, materias primas)?',cat:'Trazabilidad',nivel:'critico'},
+    // ACCESO E INGRESO
+    {id:'m1',texto:'¿La puerta de acceso está en buen estado, sella correctamente y permanece cerrada durante la operación?',cat:'Acceso e Ingreso',nivel:'alto'},
+    {id:'m2',texto:'¿La cortina de aire está operativa, limpia y genera flujo de aire suficiente al ingresar?',cat:'Acceso e Ingreso',nivel:'alto'},
+    {id:'m3',texto:'¿La lámpara de control de plagas está operativa, limpia y libre de insectos acumulados en su bandeja?',cat:'Acceso e Ingreso',nivel:'alto'},
+    {id:'m4',texto:'¿El área de ingreso está libre de objetos, residuos o materiales extraños que representen riesgo de contaminación?',cat:'Acceso e Ingreso',nivel:'alto'},
+    {id:'m5',texto:'¿Las paredes, piso y techo del área de ingreso están limpios, sin humedad ni daño físico visible?',cat:'Acceso e Ingreso',nivel:'medio'},
+    {id:'m6',texto:'¿El botiquín está ubicado en el sitio y en buen estado?',cat:'Acceso e Ingreso',nivel:'medio'},
+    {id:'m7',texto:'¿El dispensador de agua está limpio y funciona correctamente?',cat:'Acceso e Ingreso',nivel:'medio'},
+    {id:'m8',texto:'¿La caneca de residuos está en buen estado, limpia, con bolsa y sin exceso de residuos?',cat:'Acceso e Ingreso',nivel:'medio'},
+    {id:'m9',texto:'¿Los interruptores, tomas corrientes y lámparas están en buen estado, limpios y en funcionamiento?',cat:'Acceso e Ingreso',nivel:'medio'},
+    // BAÑOS Y VESTIERS
+    {id:'m10',texto:'¿Los baños están limpios, sin olores, sin humedad acumulada y en buen estado general?',cat:'Baños y Vestiers',nivel:'alto'},
+    {id:'m11',texto:'¿El lavamanos funciona correctamente?',cat:'Baños y Vestiers',nivel:'alto'},
+    {id:'m12',texto:'¿El espejo está en buen estado y limpio?',cat:'Baños y Vestiers',nivel:'medio'},
+    {id:'m13',texto:'¿Los inodoros tienen tapa, funcionan correctamente y están sin fugas ni residuos?',cat:'Baños y Vestiers',nivel:'alto'},
+    {id:'m14',texto:'¿El dispensador de jabón desinfectante tiene producto disponible, limpio y con etiqueta de identificación?',cat:'Baños y Vestiers',nivel:'critico'},
+    {id:'m15',texto:'¿Se cuenta con papel higiénico disponible y dispensadores en buen estado?',cat:'Baños y Vestiers',nivel:'medio'},
+    {id:'m16',texto:'¿El secador de manos está operativo, limpio y en buen estado físico?',cat:'Baños y Vestiers',nivel:'medio'},
+    {id:'m17',texto:'¿Las canecas de residuos están en buen estado, limpias, con bolsa y sin exceso de residuos?',cat:'Baños y Vestiers',nivel:'medio'},
+    {id:'m18',texto:'¿Las puertas están en buen estado y cierran correctamente?',cat:'Baños y Vestiers',nivel:'medio'},
+    {id:'m19',texto:'¿La zona de vestieres está limpia, ordenada, sin olores, sin humedad y en buen estado general?',cat:'Baños y Vestiers',nivel:'alto'},
+    {id:'m20',texto:'¿Los lockers están en buen estado, limpios y sin elementos no permitidos?',cat:'Baños y Vestiers',nivel:'medio'},
+    // ZONA DE ASEPSIA
+    {id:'m21',texto:'¿El lavamanos de acero inoxidable está limpio, sin manchas, sin residuos y en buen estado?',cat:'Zona de Asepsia',nivel:'critico'},
+    {id:'m22',texto:'¿El accionamiento de pedal del lavamanos funciona correctamente y sin fugas?',cat:'Zona de Asepsia',nivel:'alto'},
+    {id:'m23',texto:'¿El dispensador de jabón desinfectante tiene producto disponible, limpio y con etiqueta de identificación?',cat:'Zona de Asepsia',nivel:'critico'},
+    {id:'m24',texto:'¿El rodillo quita pelusas para uniforme está disponible y en buen estado?',cat:'Zona de Asepsia',nivel:'medio'},
+    {id:'m25',texto:'¿El lavabotas tiene jabón, cepillo en buen estado, se encuentra limpio y sin residuos acumulados?',cat:'Zona de Asepsia',nivel:'alto'},
+    {id:'m26',texto:'¿El dispensador de EPP (gorros y tapabocas) está abastecido y en buen estado?',cat:'Zona de Asepsia',nivel:'critico'},
+    {id:'m27',texto:'¿El secador de manos está operativo, limpio y en buen estado?',cat:'Zona de Asepsia',nivel:'medio'},
+    // ZONA DE PESAJE
+    {id:'m28',texto:'¿Todos los ingredientes están correctamente identificados con nombre, número de lote y fecha de vencimiento vigente?',cat:'Pesaje de Ingredientes',nivel:'critico'},
+    {id:'m29',texto:'¿Los recipientes de pesaje (baldes, cucharones, espátulas) están cerrados herméticamente, limpios y almacenados correctamente?',cat:'Pesaje de Ingredientes',nivel:'alto'},
+    {id:'m30',texto:'¿El anaquel de almacenamiento de elementos de pesaje está limpio y organizado?',cat:'Pesaje de Ingredientes',nivel:'medio'},
+    {id:'m31',texto:'¿La caneca de residuos está limpia, con bolsa y ubicada correctamente en el área?',cat:'Pesaje de Ingredientes',nivel:'medio'},
+    {id:'m32',texto:'¿Las balanzas están calibradas, limpias y con sticker de calibración vigente?',cat:'Pesaje de Ingredientes',nivel:'critico'},
+    {id:'m33',texto:'¿El área está libre de derrames, residuos y polvo de aditivos en piso, paredes y superficies?',cat:'Pesaje de Ingredientes',nivel:'alto'},
+    {id:'m34',texto:'¿Los formatos de pesaje de ingredientes se encuentran diligenciados de manera completa, sin tachones?',cat:'Pesaje de Ingredientes',nivel:'alto'},
+    {id:'m35',texto:'¿Las mesas y estibas se encuentran limpias?',cat:'Pesaje de Ingredientes',nivel:'medio'},
+    {id:'m36',texto:'¿Las paredes, piso y techo de la zona de pesaje están limpios, sin humedad ni daño físico visible?',cat:'Pesaje de Ingredientes',nivel:'medio'},
+    // ZONA DE PROCESO
+    {id:'m37',texto:'¿Los tanques de emulsificadores y preparación están limpios externamente, sin residuos ni derrames visibles?',cat:'Zona de Proceso',nivel:'critico'},
+    {id:'m38',texto:'¿Las tapas de los tanques están en buen estado, sin daño físico y cierran correctamente?',cat:'Zona de Proceso',nivel:'alto'},
+    {id:'m39',texto:'¿Las tuberías y líneas de proceso están sin fugas, sin óxido y correctamente identificadas?',cat:'Zona de Proceso',nivel:'alto'},
+    {id:'m40',texto:'¿Las plataformas y escaleras se encuentran limpias?',cat:'Zona de Proceso',nivel:'medio'},
+    {id:'m41',texto:'¿Las máquinas, equipos y herramientas están limpias y en buen estado, sin reparaciones temporales?',cat:'Zona de Proceso',nivel:'alto'},
+    {id:'m42',texto:'¿Los elementos de limpieza siguen el código de colores y están almacenados de manera adecuada, limpios y en buen estado?',cat:'Zona de Proceso',nivel:'alto'},
+    {id:'m43',texto:'¿El material quebradizo (vidrio y plástico duro) en el área está en condiciones adecuadas, sin rotura y con sticker de inventario?',cat:'Zona de Proceso',nivel:'critico'},
+    {id:'m44',texto:'¿Los tableros eléctricos están en buen estado, cerrados y limpios?',cat:'Zona de Proceso',nivel:'alto'},
+    {id:'m45',texto:'¿Los insumos del área están identificados con nombre y lote, tapados herméticamente y almacenados sobre estibas?',cat:'Zona de Proceso',nivel:'critico'},
+    {id:'m46',texto:'¿El área alrededor de los tanques está libre de derrames, charcos y residuos de producto?',cat:'Zona de Proceso',nivel:'alto'},
+    {id:'m47',texto:'¿El ascensor de carga está limpio, operativo y con el área de acceso despejada sin obstáculos?',cat:'Zona de Proceso',nivel:'medio'},
+    {id:'m48',texto:'¿Las paredes, piso y techo de la zona de proceso están limpios, sin humedad ni daño físico visible?',cat:'Zona de Proceso',nivel:'medio'},
+    {id:'m49',texto:'¿Las puertas están en buen estado, sellan correctamente y permanecen cerradas durante la operación?',cat:'Zona de Proceso',nivel:'alto'},
+    // ZONA DE LLENADO Y EMPAQUE
+    {id:'m50',texto:'¿Las tuberías y conexiones de la línea de llenado están sin fugas, sin óxidos y limpias?',cat:'Llenado y Empaque',nivel:'critico'},
+    {id:'m51',texto:'¿Las mesas de acero inoxidable se encuentran limpias y en buen estado?',cat:'Llenado y Empaque',nivel:'alto'},
+    {id:'m52',texto:'¿Las balanzas están calibradas, limpias y con sticker de calibración vigente?',cat:'Llenado y Empaque',nivel:'critico'},
+    {id:'m53',texto:'¿El aire acondicionado está limpio y operativo sin acumulación de polvo en sus filtros?',cat:'Llenado y Empaque',nivel:'alto'},
+    {id:'m54',texto:'¿El dispensador de gel antibacterial cuenta con producto y está en buen estado?',cat:'Llenado y Empaque',nivel:'critico'},
+    {id:'m55',texto:'¿El área de llenado y empaque está libre de residuos, derrames de producto y materiales extraños al proceso?',cat:'Llenado y Empaque',nivel:'critico'},
+    {id:'m56',texto:'¿La encintadora y codificador están limpios y en buen funcionamiento?',cat:'Llenado y Empaque',nivel:'alto'},
+    {id:'m57',texto:'¿Las paredes, piso y techo de la zona de llenado están limpios, sin humedad ni daño físico visible?',cat:'Llenado y Empaque',nivel:'medio'},
+    {id:'m58',texto:'¿Las puertas están en buen estado, sellan correctamente y permanecen cerradas durante la operación?',cat:'Llenado y Empaque',nivel:'alto'},
+    // ZONA DE ESTIBADO
+    {id:'m59',texto:'¿Los evaporadores o aires están limpios, operativos y sin acumulación de suciedad?',cat:'Zona de Estibado',nivel:'alto'},
+    {id:'m60',texto:'¿Las paredes y piso están limpios, secos, sin presencia de humedad y en buen estado?',cat:'Zona de Estibado',nivel:'alto'},
+    {id:'m61',texto:'¿El área de tránsito está despejada y libre de obstáculos?',cat:'Zona de Estibado',nivel:'medio'},
+    {id:'m62',texto:'¿El área está libre de olores extraños, plagas o cualquier indicio de contaminación?',cat:'Zona de Estibado',nivel:'critico'},
+    {id:'m63',texto:'¿Las estibas se encuentran limpias y en buen estado?',cat:'Zona de Estibado',nivel:'medio'},
+    {id:'m64',texto:'¿La banda transportadora está limpia y en buen funcionamiento?',cat:'Zona de Estibado',nivel:'alto'},
+    // ZONA DE TANQUES DE ALMACENAMIENTO
+    {id:'m65',texto:'¿Los tanques de almacenamiento están limpios externamente, sin residuos ni derrames visibles?',cat:'Tanques Almacenamiento',nivel:'alto'},
+    {id:'m66',texto:'¿Las tuberías y líneas de almacenamiento están sin fugas, sin óxido y limpias?',cat:'Tanques Almacenamiento',nivel:'alto'},
+    {id:'m67',texto:'¿El lugar para la disposición de residuos está ordenado y limpio, canecas limpias y sin exceso de residuos?',cat:'Tanques Almacenamiento',nivel:'medio'},
+    {id:'m68',texto:'¿Las paredes, piso y techo de la zona de tanques están limpios y en buen estado?',cat:'Tanques Almacenamiento',nivel:'medio'},
+    {id:'m69',texto:'¿El piso está sin acumulación de agua o restos de producto?',cat:'Tanques Almacenamiento',nivel:'alto'},
   ]},
   {id:'oleina',nombre:'Envase Oleína',icono:'🫙',nivel:'medio',imagen:'img_oleina.jpg',desc:'Líneas de envase de oleína y aceites fraccionados',
    preguntas:[
@@ -440,6 +507,18 @@ function startSurvey(id){
   document.getElementById('inp-nombre').value='';
   document.getElementById('inp-cargo').value='';
   document.getElementById('inp-jefe').value='';
+
+  // Actualizar etiqueta del jefe según el área a inspeccionar
+  const area = AREAS.find(x => x.id === id);
+  const labelJefe = document.getElementById('lbl-jefe');
+  if(area && labelJefe){
+    labelJefe.textContent = '🏭 Jefe de Planta ' + area.nombre;
+  }
+  const inputJefe = document.getElementById('inp-jefe');
+  if(area && inputJefe){
+    inputJefe.placeholder = 'Ej: Jefe de Planta ' + area.nombre;
+  }
+
   checkIdForm();
   document.getElementById('modal-id').style.display='flex';
 }
@@ -940,7 +1019,7 @@ function lanzarConfetti(){
       <input id="inp-cargo" type="text" placeholder="Ej: Inspector de Calidad" style="width:100%;padding:11px 13px;border:1.5px solid #d1fae5;border-radius:10px;font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;" oninput="checkIdForm()" onfocus="this.style.borderColor='#0f4c3a'" onblur="this.style.borderColor='#d1fae5'">
     </div>
     <div style="margin-bottom:20px;">
-      <label style="font-size:10px;font-weight:800;color:#0f4c3a;letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:5px;">🏭 Jefe a cargo de la planta</label>
+      <label id="lbl-jefe" style="font-size:10px;font-weight:800;color:#0f4c3a;letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:5px;">🏭 Jefe a cargo de la planta</label>
       <input id="inp-jefe" type="text" placeholder="Ej: María Rodríguez" style="width:100%;padding:11px 13px;border:1.5px solid #d1fae5;border-radius:10px;font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;" oninput="checkIdForm()" onfocus="this.style.borderColor='#0f4c3a'" onblur="this.style.borderColor='#d1fae5'">
     </div>
     <button id="btn-id-continuar" onclick="continueToSurvey()" disabled style="width:100%;padding:13px;background:#0f4c3a;color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;font-family:inherit;cursor:not-allowed;opacity:0.45;transition:all .2s;">
