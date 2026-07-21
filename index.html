@@ -389,8 +389,8 @@ body.is-admin hr.admin-only { display: block !important; }
 }
 
 </style>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" onerror="document.write('<scr'+'ipt src=\'https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-app-compat.js\'><\/scr'+'ipt>')"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js" onerror="document.write('<scr'+'ipt src=\'https://cdn.jsdelivr.net/npm/firebase@10.12.0/firebase-database-compat.js\'><\/scr'+'ipt>')"></script>
 </head>
 <body>
 
@@ -467,7 +467,7 @@ body.is-admin hr.admin-only { display: block !important; }
   </div>
   <div class="topbar-center">
     <div class="tab-pill active" onclick="showPage('dashboard')">Dashboard</div>
-    <div class="tab-pill" onclick="showPage('areas')">Áreas</div>
+    <div class="tab-pill" onclick="window.open('inspector.html','_blank')">Áreas</div>
     <div class="tab-pill" onclick="showPage('consolidado')">Consolidado</div>
     <div class="tab-pill admin-only" onclick="showPage('admin')" id="tab-admin">🛡 Admin</div>
   </div>
@@ -490,7 +490,7 @@ body.is-admin hr.admin-only { display: block !important; }
 <div class="sidebar" id="sidebar">
   <div class="nav-section">Navegación</div>
   <div class="nav-item active" onclick="showPage('dashboard');closeSidebar()"><span class="nav-icon">📊</span> Dashboard</div>
-  <div class="nav-item" onclick="showPage('areas');closeSidebar()"><span class="nav-icon">🏭</span> Todas las Áreas</div>
+  <div class="nav-item" onclick="window.open('inspector.html','_blank');closeSidebar()"><span class="nav-icon">🏭</span> Iniciar inspección</div>
   <div class="nav-item" onclick="showPage('consolidado');closeSidebar()"><span class="nav-icon">📋</span> Consolidado</div>
 
   <hr class="sidebar-divider">
@@ -519,7 +519,7 @@ body.is-admin hr.admin-only { display: block !important; }
     </div>
     <div class="page-actions">
       <button class="btn btn-outline btn-sm" onclick="resetAll()">🔄 Reiniciar</button>
-      <button class="btn btn-primary btn-sm" onclick="showPage('areas')">▶️ Iniciar inspección</button>
+      <button class="btn btn-primary btn-sm" onclick="window.open('inspector.html','_blank')">▶️ Iniciar inspección</button>
     </div>
   </div>
 
@@ -539,7 +539,7 @@ body.is-admin hr.admin-only { display: block !important; }
         <button onclick="showPage('consolidado')" style="display:flex;align-items:center;justify-content:center;gap:9px;padding:13px 18px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.25);border-radius:10px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
           ☁️ Ver Consolidado
         </button>
-        <button onclick="showPage('areas')" style="display:flex;align-items:center;justify-content:center;gap:9px;padding:13px 18px;background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.35);border-radius:10px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'">
+        <button onclick="window.open('inspector.html','_blank')" style="display:flex;align-items:center;justify-content:center;gap:9px;padding:13px 18px;background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.35);border-radius:10px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'">
           🏭 Iniciar Inspección
         </button>
       </div>
@@ -1028,16 +1028,75 @@ let AREAS = [
     imagen: 'https://images.unsplash.com/photo-1606924862083-8e83e8c7e6a5?w=600&q=80',
     nivel: 'alto', desc: 'Producción de margarinas y shortenings. Producto de consumo directo con altos estándares microbiológicos.', responsable: '',
     preguntas: [
-      { id: 'm1', texto: '¿Los equipos de producción (emulsificadoras, cristalizadoras, votadoras) están correctamente limpios y sanitizados con los registros respectivos?', categoria: 'Limpieza CIP', nivel: 'critico' },
-      { id: 'm2', texto: '¿Las materias primas (aceites, grasas, emulsificantes, vitaminas) están dentro de fecha de vencimiento y almacenadas correctamente?', categoria: 'Materias Primas', nivel: 'critico' },
-      { id: 'm3', texto: '¿Se realizan análisis microbiológicos periódicos al producto final y los resultados están dentro de límites establecidos?', categoria: 'Microbiología', nivel: 'critico' },
-      { id: 'm4', texto: '¿Los parámetros de textura, punto de fusión y humedad se controlan y registran en cada lote de producción?', categoria: 'Control de Calidad', nivel: 'alto' },
-      { id: 'm5', texto: '¿El cuarto frío de almacenamiento de materia prima y producto terminado mantiene la temperatura requerida (≤10°C) con registro continuo?', categoria: 'Cadena de Frío', nivel: 'critico' },
-      { id: 'm6', texto: '¿El personal de producción cumple estrictamente con BPM: sin joyas, uniforme limpio, cabello cubierto, lavado de manos?', categoria: 'BPM', nivel: 'alto' },
-      { id: 'm7', texto: '¿Los aditivos e ingredientes se adicionan según la formulación aprobada, con básculas calibradas y registros de pesaje?', categoria: 'Formulación', nivel: 'alto' },
-      { id: 'm8', texto: '¿El área está libre de plagas y se tienen registros vigentes del programa de control de plagas?', categoria: 'Control de Plagas', nivel: 'alto' },
-      { id: 'm9', texto: '¿El envasado y empaque se realiza en condiciones higiénicas, con materiales aprobados para contacto alimentario?', categoria: 'Envasado', nivel: 'alto' },
-      { id: 'm10', texto: '¿Los lotes producidos tienen trazabilidad completa (número de lote, fecha, código de operario, materias primas usadas)?', categoria: 'Trazabilidad', nivel: 'critico' },
+      { id: 'm1', texto: '¿La puerta de acceso está en buen estado, sella correctamente y permanece cerrada durante la operación?', categoria: 'Acceso e Ingreso', nivel: 'alto' },
+      { id: 'm2', texto: '¿La cortina de aire está operativa, limpia y genera flujo de aire suficiente al ingresar?', categoria: 'Acceso e Ingreso', nivel: 'alto' },
+      { id: 'm3', texto: '¿La lámpara de control de plagas está operativa, limpia y libre de insectos acumulados en su bandeja?', categoria: 'Acceso e Ingreso', nivel: 'alto' },
+      { id: 'm4', texto: '¿El área de ingreso está libre de objetos, residuos o materiales extraños que representen riesgo de contaminación?', categoria: 'Acceso e Ingreso', nivel: 'alto' },
+      { id: 'm5', texto: '¿Las paredes, piso y techo del área de ingreso están limpios, sin humedad ni daño físico visible?', categoria: 'Acceso e Ingreso', nivel: 'medio' },
+      { id: 'm6', texto: '¿El botiquín está ubicado en el sitio y en buen estado?', categoria: 'Acceso e Ingreso', nivel: 'medio' },
+      { id: 'm7', texto: '¿El dispensador de agua está limpio y funciona correctamente?', categoria: 'Acceso e Ingreso', nivel: 'medio' },
+      { id: 'm8', texto: '¿La caneca de residuos está en buen estado, limpia, con bolsa y sin exceso de residuos?', categoria: 'Acceso e Ingreso', nivel: 'medio' },
+      { id: 'm9', texto: '¿Los interruptores, tomas corrientes y lámparas están en buen estado, limpios y en funcionamiento?', categoria: 'Acceso e Ingreso', nivel: 'medio' },
+      { id: 'm10', texto: '¿Los baños están limpios, sin olores, sin humedad acumulada y en buen estado general?', categoria: 'Baños y Vestiers', nivel: 'alto' },
+      { id: 'm11', texto: '¿El lavamanos funciona correctamente?', categoria: 'Baños y Vestiers', nivel: 'alto' },
+      { id: 'm12', texto: '¿El espejo está en buen estado y limpio?', categoria: 'Baños y Vestiers', nivel: 'medio' },
+      { id: 'm13', texto: '¿Los inodoros tienen tapa, funcionan correctamente y están sin fugas ni residuos?', categoria: 'Baños y Vestiers', nivel: 'alto' },
+      { id: 'm14', texto: '¿El dispensador de jabón desinfectante tiene producto disponible, limpio y con etiqueta de identificación?', categoria: 'Baños y Vestiers', nivel: 'critico' },
+      { id: 'm15', texto: '¿Se cuenta con papel higiénico disponible y dispensadores en buen estado?', categoria: 'Baños y Vestiers', nivel: 'medio' },
+      { id: 'm16', texto: '¿El secador de manos está operativo, limpio y en buen estado físico?', categoria: 'Baños y Vestiers', nivel: 'medio' },
+      { id: 'm17', texto: '¿Las canecas de residuos están en buen estado, limpias, con bolsa y sin exceso de residuos?', categoria: 'Baños y Vestiers', nivel: 'medio' },
+      { id: 'm18', texto: '¿Las puertas están en buen estado y cierran correctamente?', categoria: 'Baños y Vestiers', nivel: 'medio' },
+      { id: 'm19', texto: '¿La zona de vestieres está limpia, ordenada, sin olores, sin humedad y en buen estado general?', categoria: 'Baños y Vestiers', nivel: 'alto' },
+      { id: 'm20', texto: '¿Los lockers están en buen estado, limpios y sin elementos no permitidos?', categoria: 'Baños y Vestiers', nivel: 'medio' },
+      { id: 'm21', texto: '¿El lavamanos de acero inoxidable está limpio, sin manchas, sin residuos y en buen estado?', categoria: 'Zona de Asepsia', nivel: 'critico' },
+      { id: 'm22', texto: '¿El accionamiento de pedal del lavamanos funciona correctamente y sin fugas?', categoria: 'Zona de Asepsia', nivel: 'alto' },
+      { id: 'm23', texto: '¿El dispensador de jabón desinfectante tiene producto disponible, limpio y con etiqueta de identificación?', categoria: 'Zona de Asepsia', nivel: 'critico' },
+      { id: 'm24', texto: '¿El rodillo quita pelusas para uniforme está disponible y en buen estado?', categoria: 'Zona de Asepsia', nivel: 'medio' },
+      { id: 'm25', texto: '¿El lavabotas tiene jabón, cepillo en buen estado, se encuentra limpio y sin residuos acumulados?', categoria: 'Zona de Asepsia', nivel: 'alto' },
+      { id: 'm26', texto: '¿El dispensador de EPP (gorros y tapabocas) está abastecido y en buen estado?', categoria: 'Zona de Asepsia', nivel: 'critico' },
+      { id: 'm27', texto: '¿El secador de manos está operativo, limpio y en buen estado?', categoria: 'Zona de Asepsia', nivel: 'medio' },
+      { id: 'm28', texto: '¿Todos los ingredientes están correctamente identificados con nombre, número de lote y fecha de vencimiento vigente?', categoria: 'Pesaje de Ingredientes', nivel: 'critico' },
+      { id: 'm29', texto: '¿Los recipientes de pesaje (baldes, cucharones, espátulas) están cerrados herméticamente, limpios y almacenados correctamente?', categoria: 'Pesaje de Ingredientes', nivel: 'alto' },
+      { id: 'm30', texto: '¿El anaquel de almacenamiento de elementos de pesaje está limpio y organizado?', categoria: 'Pesaje de Ingredientes', nivel: 'medio' },
+      { id: 'm31', texto: '¿La caneca de residuos está limpia, con bolsa y ubicada correctamente en el área?', categoria: 'Pesaje de Ingredientes', nivel: 'medio' },
+      { id: 'm32', texto: '¿Las balanzas están calibradas, limpias y con sticker de calibración vigente?', categoria: 'Pesaje de Ingredientes', nivel: 'critico' },
+      { id: 'm33', texto: '¿El área está libre de derrames, residuos y polvo de aditivos en piso, paredes y superficies?', categoria: 'Pesaje de Ingredientes', nivel: 'alto' },
+      { id: 'm34', texto: '¿Los formatos de pesaje de ingredientes se encuentran diligenciados de manera completa, sin tachones?', categoria: 'Pesaje de Ingredientes', nivel: 'alto' },
+      { id: 'm35', texto: '¿Las mesas y estibas se encuentran limpias?', categoria: 'Pesaje de Ingredientes', nivel: 'medio' },
+      { id: 'm36', texto: '¿Las paredes, piso y techo de la zona de pesaje están limpios, sin humedad ni daño físico visible?', categoria: 'Pesaje de Ingredientes', nivel: 'medio' },
+      { id: 'm37', texto: '¿Los tanques de emulsificadores y preparación están limpios externamente, sin residuos ni derrames visibles?', categoria: 'Zona de Proceso', nivel: 'critico' },
+      { id: 'm38', texto: '¿Las tapas de los tanques están en buen estado, sin daño físico y cierran correctamente?', categoria: 'Zona de Proceso', nivel: 'alto' },
+      { id: 'm39', texto: '¿Las tuberías y líneas de proceso están sin fugas, sin óxido y correctamente identificadas?', categoria: 'Zona de Proceso', nivel: 'alto' },
+      { id: 'm40', texto: '¿Las plataformas y escaleras se encuentran limpias?', categoria: 'Zona de Proceso', nivel: 'medio' },
+      { id: 'm41', texto: '¿Las máquinas, equipos y herramientas están limpias y en buen estado, sin reparaciones temporales?', categoria: 'Zona de Proceso', nivel: 'alto' },
+      { id: 'm42', texto: '¿Los elementos de limpieza siguen el código de colores y están almacenados de manera adecuada, limpios y en buen estado?', categoria: 'Zona de Proceso', nivel: 'alto' },
+      { id: 'm43', texto: '¿El material quebradizo (vidrio y plástico duro) en el área está en condiciones adecuadas, sin rotura y con sticker de inventario?', categoria: 'Zona de Proceso', nivel: 'critico' },
+      { id: 'm44', texto: '¿Los tableros eléctricos están en buen estado, cerrados y limpios?', categoria: 'Zona de Proceso', nivel: 'alto' },
+      { id: 'm45', texto: '¿Los insumos del área están identificados con nombre y lote, tapados herméticamente y almacenados sobre estibas?', categoria: 'Zona de Proceso', nivel: 'critico' },
+      { id: 'm46', texto: '¿El área alrededor de los tanques está libre de derrames, charcos y residuos de producto?', categoria: 'Zona de Proceso', nivel: 'alto' },
+      { id: 'm47', texto: '¿El ascensor de carga está limpio, operativo y con el área de acceso despejada sin obstáculos?', categoria: 'Zona de Proceso', nivel: 'medio' },
+      { id: 'm48', texto: '¿Las paredes, piso y techo de la zona de proceso están limpios, sin humedad ni daño físico visible?', categoria: 'Zona de Proceso', nivel: 'medio' },
+      { id: 'm49', texto: '¿Las puertas están en buen estado, sellan correctamente y permanecen cerradas durante la operación?', categoria: 'Zona de Proceso', nivel: 'alto' },
+      { id: 'm50', texto: '¿Las tuberías y conexiones de la línea de llenado están sin fugas, sin óxidos y limpias?', categoria: 'Llenado y Empaque', nivel: 'critico' },
+      { id: 'm51', texto: '¿Las mesas de acero inoxidable se encuentran limpias y en buen estado?', categoria: 'Llenado y Empaque', nivel: 'alto' },
+      { id: 'm52', texto: '¿Las balanzas están calibradas, limpias y con sticker de calibración vigente?', categoria: 'Llenado y Empaque', nivel: 'critico' },
+      { id: 'm53', texto: '¿El aire acondicionado está limpio y operativo sin acumulación de polvo en sus filtros?', categoria: 'Llenado y Empaque', nivel: 'alto' },
+      { id: 'm54', texto: '¿El dispensador de gel antibacterial cuenta con producto y está en buen estado?', categoria: 'Llenado y Empaque', nivel: 'critico' },
+      { id: 'm55', texto: '¿El área de llenado y empaque está libre de residuos, derrames de producto y materiales extraños al proceso?', categoria: 'Llenado y Empaque', nivel: 'critico' },
+      { id: 'm56', texto: '¿La encintadora y codificador están limpios y en buen funcionamiento?', categoria: 'Llenado y Empaque', nivel: 'alto' },
+      { id: 'm57', texto: '¿Las paredes, piso y techo de la zona de llenado están limpios, sin humedad ni daño físico visible?', categoria: 'Llenado y Empaque', nivel: 'medio' },
+      { id: 'm58', texto: '¿Las puertas están en buen estado, sellan correctamente y permanecen cerradas durante la operación?', categoria: 'Llenado y Empaque', nivel: 'alto' },
+      { id: 'm59', texto: '¿Los evaporadores o aires están limpios, operativos y sin acumulación de suciedad?', categoria: 'Zona de Estibado', nivel: 'alto' },
+      { id: 'm60', texto: '¿Las paredes y piso están limpios, secos, sin presencia de humedad y en buen estado?', categoria: 'Zona de Estibado', nivel: 'alto' },
+      { id: 'm61', texto: '¿El área de tránsito está despejada y libre de obstáculos?', categoria: 'Zona de Estibado', nivel: 'medio' },
+      { id: 'm62', texto: '¿El área está libre de olores extraños, plagas o cualquier indicio de contaminación?', categoria: 'Zona de Estibado', nivel: 'critico' },
+      { id: 'm63', texto: '¿Las estibas se encuentran limpias y en buen estado?', categoria: 'Zona de Estibado', nivel: 'medio' },
+      { id: 'm64', texto: '¿La banda transportadora está limpia y en buen funcionamiento?', categoria: 'Zona de Estibado', nivel: 'alto' },
+      { id: 'm65', texto: '¿Los tanques de almacenamiento están limpios externamente, sin residuos ni derrames visibles?', categoria: 'Tanques Almacenamiento', nivel: 'alto' },
+      { id: 'm66', texto: '¿Las tuberías y líneas de almacenamiento están sin fugas, sin óxido y limpias?', categoria: 'Tanques Almacenamiento', nivel: 'alto' },
+      { id: 'm67', texto: '¿El lugar para la disposición de residuos está ordenado y limpio, canecas limpias y sin exceso de residuos?', categoria: 'Tanques Almacenamiento', nivel: 'medio' },
+      { id: 'm68', texto: '¿Las paredes, piso y techo de la zona de tanques están limpios y en buen estado?', categoria: 'Tanques Almacenamiento', nivel: 'medio' },
+      { id: 'm69', texto: '¿El piso está sin acumulación de agua o restos de producto?', categoria: 'Tanques Almacenamiento', nivel: 'alto' },
     ]
   },
   {
@@ -1314,7 +1373,7 @@ function renderDashboard() {
       const pct = getAreaPct(a);
       const dotColor = done ? '#4ade80' : pct > 0 ? '#fbbf24' : 'rgba(255,255,255,0.4)';
       const pctLabel = done ? '<span style="font-size:10px;opacity:0.8;">\u2713</span>' : pct > 0 ? '<span style="font-size:10px;opacity:0.7;">' + pct + '%</span>' : '';
-      return '<button onclick="openSurvey(\'' + a.id + '\')" style="display:inline-flex;align-items:center;gap:7px;padding:7px 16px;border-radius:100px;background:rgba(255,255,255,0.13);border:1px solid rgba(255,255,255,0.28);color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.15s;white-space:nowrap;" onmouseover="this.style.background=\'rgba(255,255,255,0.22)\'" onmouseout="this.style.background=\'rgba(255,255,255,0.13)\'"><span style="width:7px;height:7px;border-radius:50%;background:' + dotColor + ';flex-shrink:0;"></span> ' + a.icono + ' ' + a.nombre + ' ' + pctLabel + '</button>';
+      return '<button onclick="window.open(\'inspector.html\',\'_blank\')" style="display:inline-flex;align-items:center;gap:7px;padding:7px 16px;border-radius:100px;background:rgba(255,255,255,0.13);border:1px solid rgba(255,255,255,0.28);color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.15s;white-space:nowrap;" onmouseover="this.style.background=\'rgba(255,255,255,0.22)\'" onmouseout="this.style.background=\'rgba(255,255,255,0.13)\'"><span style="width:7px;height:7px;border-radius:50%;background:' + dotColor + ';flex-shrink:0;"></span> ' + a.icono + ' ' + a.nombre + ' ' + pctLabel + '</button>';
     }).join('');
   }
 
@@ -1612,10 +1671,11 @@ function renderAreaCard(a, compact) {
   const totalPregs = a.preguntas.length;
   const answered = Object.keys(ANSWERS[a.id]||{}).length;
   const ok = Object.values(ANSWERS[a.id]||{}).filter(x=>x.value==='ok').length;
-  const nc = Object.values(ANSWERS[a.id]||{}).filter(x=>x.value==='nc').length;
   const bad = Object.values(ANSWERS[a.id]||{}).filter(x=>x.value==='bad').length;
+  const pctCumplimiento = answered > 0 ? Math.round((ok/answered)*100) : 0;
   const colPct = pct===100?'#16a34a':pct>0?'#d97706':'#94a3b8';
-  return `<div class="area-card" onclick="openSurvey('${a.id}');closeSidebar()">
+  const colCumpl = pctCumplimiento>=80?'#16a34a':pctCumplimiento>=50?'#d97706':'#dc2626';
+  return `<div class="area-card" onclick="window.open('inspector.html','_blank')">
     <div class="area-card-banner" style="background:${a.color};"></div>
     <div class="area-card-img-wrap">
       ${(function(){
@@ -1645,11 +1705,11 @@ function renderAreaCard(a, compact) {
       </div>
       <div class="area-card-stats">
         <div class="area-stat-box"><div class="area-stat-val" style="color:#16a34a">${ok}</div><div class="area-stat-lbl">Cumple</div></div>
-        <div class="area-stat-box"><div class="area-stat-val" style="color:#d97706">${nc}</div><div class="area-stat-lbl">Parcial</div></div>
         <div class="area-stat-box"><div class="area-stat-val" style="color:#dc2626">${bad}</div><div class="area-stat-lbl">No cumple</div></div>
+        <div class="area-stat-box"><div class="area-stat-val" style="color:${colCumpl}">${pctCumplimiento}%</div><div class="area-stat-lbl">Cumplim.</div></div>
       </div>
-      <button class="area-card-btn ${done?'completed':''}" onclick="event.stopPropagation();openSurvey('${a.id}')">
-        ${done ? '🔍 Revisar inspección' : answered > 0 ? '▶️ Continuar inspección' : '▶️ Iniciar inspección'}
+      <button class="area-card-btn ${done?'completed':''}" onclick="event.stopPropagation();window.open('inspector.html','_blank')">
+        ▶️ Iniciar inspección
       </button>
     </div>
   </div>`;
@@ -2599,8 +2659,19 @@ const firebaseConfig = {
   messagingSenderId: "808137553333",
   appId: "1:808137553333:web:8f1c59182f070e2e44d5fc"
 };
-if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+let db = null;
+try {
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  db = firebase.database();
+} catch (e) {
+  console.error('No se pudo inicializar Firebase:', e);
+  window.addEventListener('DOMContentLoaded', function () {
+    const banner = document.createElement('div');
+    banner.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#dc2626;color:#fff;padding:10px 14px;text-align:center;font-size:13px;font-weight:600;z-index:99999;';
+    banner.textContent = '⚠️ No se pudo conectar con la base de datos (Firebase). Revisa tu conexión a internet y recarga la página.';
+    document.body.prepend(banner);
+  });
+}
 let _fbListener = null;
 
 let _allInspecciones = [];
@@ -2934,8 +3005,9 @@ function toggleDetalle(elId, inspId, btn) {
   if (!insp) return;
   const respuestas = insp.respuestas ? Object.values(insp.respuestas) : [];
   const ok  = respuestas.filter(r => (r.valor||r.value)==='ok').length;
-  const nc  = respuestas.filter(r => (r.valor||r.value)==='nc').length;
   const bad = respuestas.filter(r => (r.valor||r.value)==='bad').length;
+  const pctResp = respuestas.length ? Math.round((ok/respuestas.length)*100) : 0;
+  const colResp = pctResp>=80?'#16a34a':pctResp>=50?'#d97706':'#dc2626';
 
   el.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
@@ -2947,21 +3019,21 @@ function toggleDetalle(elId, inspId, btn) {
         <div style="font-size:16px;font-weight:800;color:#16a34a;">${ok}</div>
         <div style="font-size:9px;color:#16a34a;">CUMPLE</div>
       </div>
-      <div style="background:#fffbeb;border-radius:8px;padding:8px;text-align:center;">
-        <div style="font-size:16px;font-weight:800;color:#d97706;">${nc}</div>
-        <div style="font-size:9px;color:#d97706;">PARCIAL</div>
-      </div>
       <div style="background:#fef2f2;border-radius:8px;padding:8px;text-align:center;">
         <div style="font-size:16px;font-weight:800;color:#dc2626;">${bad}</div>
         <div style="font-size:9px;color:#dc2626;">NO CUMPLE</div>
+      </div>
+      <div style="background:${colResp}18;border-radius:8px;padding:8px;text-align:center;">
+        <div style="font-size:16px;font-weight:800;color:${colResp};">${pctResp}%</div>
+        <div style="font-size:9px;color:${colResp};">CUMPLIM.</div>
       </div>
     </div>
     ${respuestas.length === 0
       ? '<div style="text-align:center;padding:16px;color:var(--muted);font-size:13px;">Sin respuestas registradas</div>'
       : respuestas.map(r => {
           const val = r.valor||r.value||'';
-          const valLabel = val==='ok'?'✅ Cumple':val==='nc'?'⚠️ Parcial':val==='bad'?'❌ No cumple':'➖ N/A';
-          const valColor = val==='ok'?'#16a34a':val==='nc'?'#d97706':val==='bad'?'#dc2626':'#94a3b8';
+          const valLabel = val==='ok'?'✅ Cumple':val==='bad'?'❌ No cumple':'➖ Sin responder';
+          const valColor = val==='ok'?'#16a34a':val==='bad'?'#dc2626':'#94a3b8';
           return `<div style="border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px;">
             <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:6px;">
               <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;background:${valColor}18;color:${valColor};white-space:nowrap;flex-shrink:0;">${valLabel}</span>
@@ -3008,7 +3080,6 @@ async function verDetalleInspeccion(id) {
   const respuestas = insp.respuestas ? Object.values(insp.respuestas) : [];
 
   const ok  = respuestas.filter(r => r.valor === 'ok' || r.value === 'ok').length;
-  const nc  = respuestas.filter(r => r.valor === 'nc' || r.value === 'nc').length;
   const bad = respuestas.filter(r => r.valor === 'bad' || r.value === 'bad').length;
 
   const body = `
@@ -3026,12 +3097,12 @@ async function verDetalleInspeccion(id) {
           <div style="font-size:9px;opacity:0.7;">CUMPLE</div>
         </div>
         <div style="background:rgba(255,255,255,0.12);border-radius:7px;padding:7px;text-align:center;">
-          <div style="font-size:16px;font-weight:800;">${nc}</div>
-          <div style="font-size:9px;opacity:0.7;">PARCIAL</div>
-        </div>
-        <div style="background:rgba(255,255,255,0.12);border-radius:7px;padding:7px;text-align:center;">
           <div style="font-size:16px;font-weight:800;">${bad}</div>
           <div style="font-size:9px;opacity:0.7;">NO CUMPLE</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.12);border-radius:7px;padding:7px;text-align:center;">
+          <div style="font-size:16px;font-weight:800;">${pct}%</div>
+          <div style="font-size:9px;opacity:0.7;">CUMPLIM.</div>
         </div>
       </div>
     </div>
@@ -3039,8 +3110,8 @@ async function verDetalleInspeccion(id) {
       ? '<div style="text-align:center;padding:24px;color:var(--muted);">Sin respuestas detalladas registradas</div>'
       : respuestas.map(r => {
           const val = r.valor || r.value || '';
-          const valLabel = val==='ok'?'✅ Cumple':val==='nc'?'⚠️ Parcial':val==='bad'?'❌ No cumple':'➖ No aplica';
-          const valColor = val==='ok'?'#16a34a':val==='nc'?'#d97706':val==='bad'?'#dc2626':'#94a3b8';
+          const valLabel = val==='ok'?'✅ Cumple':val==='bad'?'❌ No cumple':'➖ Sin responder';
+          const valColor = val==='ok'?'#16a34a':val==='bad'?'#dc2626':'#94a3b8';
           return `<div style="border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;">
             <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;">
               <span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:100px;background:${valColor}20;color:${valColor};white-space:nowrap;">${valLabel}</span>
