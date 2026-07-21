@@ -559,6 +559,24 @@ body.is-admin hr.admin-only { display: block !important; }
     </div>
   </div>
 
+  <div class="card" style="margin-bottom:24px;">
+    <div class="card-title">📊 Gráficas de inocuidad</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+      <div>
+        <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;">Cumplimiento promedio por área</div>
+        <div id="chart-por-area"></div>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;">Cumple vs No cumple (total)</div>
+        <div id="chart-donut" style="display:flex;justify-content:center;"></div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;">Evolución del cumplimiento mes a mes</div>
+      <div id="chart-evolucion"></div>
+    </div>
+  </div>
+
   <div class="card">
     <div class="card-title">🏭 Acceso rápido a áreas</div>
     <div class="areas-grid" id="areas-quick"></div>
@@ -786,6 +804,32 @@ body.is-admin hr.admin-only { display: block !important; }
 
 </div><!-- /main -->
 </div><!-- /layout -->
+
+<!-- MODAL HISTORIAL DE ÁREA -->
+<div class="modal-overlay" id="modal-area-historial">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="historial-area-title">Historial de área</div>
+      <button class="modal-close" onclick="closeModal('modal-area-historial')">✕</button>
+    </div>
+    <div class="modal-body" id="historial-area-body"></div>
+  </div>
+</div>
+
+<!-- MODAL INFORME MENSUAL -->
+<div class="modal-overlay" id="modal-informe-mensual">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="informe-mensual-title">Informe mensual</div>
+      <button class="modal-close" onclick="closeModal('modal-informe-mensual')">✕</button>
+    </div>
+    <div class="modal-body">
+      <label class="form-label">Mes</label>
+      <select id="informe-mes-select" onchange="renderInformeMensualPreview()" style="width:100%;font-size:13px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;margin-bottom:14px;"></select>
+      <div id="informe-mensual-body"></div>
+    </div>
+  </div>
+</div>
 
 <!-- MODAL NUEVA AREA -->
 <div class="modal-overlay" id="modal-area">
@@ -1319,6 +1363,7 @@ window.onload = () => {
     // Valid session — restore and go straight to app
     SESSION = saved;
     updateUserUI();
+    cargarInspecciones();
     // Hide splash then hide login (login stays hidden behind splash)
     document.getElementById('login-screen').style.display = 'none';
     setTimeout(() => {
@@ -1359,48 +1404,47 @@ function renderSidebar() {
 // ===================== DASHBOARD =====================
 function renderDashboard() {
   const total = AREAS.length;
-  const completadas = AREAS.filter(isAreaDone).length;
-  const totalPregs = AREAS.reduce((s,a) => s + a.preguntas.length, 0);
-  let ncCount = 0;
-  AREAS.forEach(a => {
-    Object.values(ANSWERS[a.id]||{}).forEach(ans => { if(ans.value==='bad'||ans.value==='nc') ncCount++; });
-  });
+
   // Hero pills
   const pillsEl = document.getElementById('hero-pills');
   if(pillsEl) {
     pillsEl.innerHTML = AREAS.map(a => {
-      const done = isAreaDone(a);
-      const pct = getAreaPct(a);
-      const dotColor = done ? '#4ade80' : pct > 0 ? '#fbbf24' : 'rgba(255,255,255,0.4)';
-      const pctLabel = done ? '<span style="font-size:10px;opacity:0.8;">\u2713</span>' : pct > 0 ? '<span style="font-size:10px;opacity:0.7;">' + pct + '%</span>' : '';
-      return '<button onclick="window.open(\'inspector.html\',\'_blank\')" style="display:inline-flex;align-items:center;gap:7px;padding:7px 16px;border-radius:100px;background:rgba(255,255,255,0.13);border:1px solid rgba(255,255,255,0.28);color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.15s;white-space:nowrap;" onmouseover="this.style.background=\'rgba(255,255,255,0.22)\'" onmouseout="this.style.background=\'rgba(255,255,255,0.13)\'"><span style="width:7px;height:7px;border-radius:50%;background:' + dotColor + ';flex-shrink:0;"></span> ' + a.icono + ' ' + a.nombre + ' ' + pctLabel + '</button>';
+      const inspArea = getInspeccionesArea(a.id);
+      const prom = inspArea.length ? Math.round(inspArea.reduce((s,i)=>s+(i.pct_cumplimiento||0),0)/inspArea.length) : 0;
+      const dotColor = inspArea.length===0 ? 'rgba(255,255,255,0.4)' : prom>=80 ? '#4ade80' : prom>=50 ? '#fbbf24' : '#f87171';
+      const pctLabel = inspArea.length ? '<span style="font-size:10px;opacity:0.8;">' + prom + '%</span>' : '<span style="font-size:10px;opacity:0.5;">sin datos</span>';
+      return '<button onclick="verHistorialArea(\'' + a.id + '\')" style="display:inline-flex;align-items:center;gap:7px;padding:7px 16px;border-radius:100px;background:rgba(255,255,255,0.13);border:1px solid rgba(255,255,255,0.28);color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.15s;white-space:nowrap;" onmouseover="this.style.background=\'rgba(255,255,255,0.22)\'" onmouseout="this.style.background=\'rgba(255,255,255,0.13)\'"><span style="width:7px;height:7px;border-radius:50%;background:' + dotColor + ';flex-shrink:0;"></span> ' + a.icono + ' ' + a.nombre + ' ' + pctLabel + '</button>';
     }).join('');
   }
 
-  // Metrics
+  // Metrics (datos reales de Firebase)
   const mEl = document.getElementById('metrics-dash');
-  const totalResp = AREAS.reduce((s,a) => s + Object.keys(ANSWERS[a.id]||{}).length, 0);
-  let okCount = 0; let ncP = 0; let badC = 0;
-  AREAS.forEach(a => { Object.values(ANSWERS[a.id]||{}).forEach(ans => { if(ans.value==='ok') okCount++; else if(ans.value==='nc') ncP++; else if(ans.value==='bad') badC++; }); });
+  const totalInsp = _allInspecciones.length;
+  const hoyMes = new Date().getFullYear() + '-' + String(new Date().getMonth()+1).padStart(2,'0');
+  const inspMes = _allInspecciones.filter(i => mesKeyDe(i.created_at) === hoyMes).length;
+  const promGlobal = totalInsp ? Math.round(_allInspecciones.reduce((s,i)=>s+(i.pct_cumplimiento||0),0)/totalInsp) : 0;
+  const hallazgosAbiertos = (typeof _allHallazgos !== 'undefined') ? _allHallazgos.filter(h=>h.estado==='abierto').length : 0;
+  const colProm = promGlobal>=80?'#16a34a':promGlobal>=50?'#d97706':'#dc2626';
   mEl.innerHTML = [
-    { icon:'🏭', label:'Áreas', val:total, sub:`${completadas} completadas`, color:'#0f4c3a', bg:'#e6f7f2' },
-    { icon:'✅', label:'Conformidades', val:okCount, sub:'Criterios cumplidos', color:var_green, bg:'#f0fdf4' },
-    { icon:'⚠️', label:'Parciales', val:ncP, sub:'Cumple parcialmente', color:'#d97706', bg:'#fffbeb' },
-    { icon:'❌', label:'No conformes', val:badC, sub:'Requieren acción', color:'#dc2626', bg:'#fef2f2' },
+    { icon:'📋', label:'Inspecciones totales', val:totalInsp, sub:`${inspMes} este mes`, color:'#0f4c3a', bg:'#e6f7f2' },
+    { icon:'📊', label:'Cumplimiento global', val:promGlobal+'%', sub:'Promedio de todas las áreas', color:colProm, bg:colProm+'18' },
+    { icon:'🚨', label:'Hallazgos abiertos', val:hallazgosAbiertos, sub:'Pendientes de cierre', color:'#dc2626', bg:'#fef2f2' },
+    { icon:'🏭', label:'Áreas activas', val:total, sub:'Con checklist configurado', color:'#2563eb', bg:'#eff6ff' },
   ].map(m => `<div class="metric-card">
     <div class="metric-icon" style="background:${m.bg};color:${m.color}">${m.icon}</div>
     <div><div class="metric-label">${m.label}</div><div class="metric-val" style="color:${m.color}">${m.val}</div><div class="metric-sub">${m.sub}</div></div>
   </div>`).join('');
 
-  // Avance por área
+  // Avance por área (cumplimiento promedio real)
   const avEl = document.getElementById('avance-areas');
   avEl.innerHTML = AREAS.map(a => {
-    const pct = getAreaPct(a);
-    const col = pct === 100 ? '#16a34a' : pct > 0 ? '#d97706' : '#94a3b8';
-    return `<div style="margin-bottom:12px;">
+    const inspArea = getInspeccionesArea(a.id);
+    const pct = inspArea.length ? Math.round(inspArea.reduce((s,i)=>s+(i.pct_cumplimiento||0),0)/inspArea.length) : 0;
+    const col = inspArea.length===0 ? '#94a3b8' : pct >= 80 ? '#16a34a' : pct >= 50 ? '#d97706' : '#dc2626';
+    return `<div style="margin-bottom:12px;cursor:pointer;" onclick="verHistorialArea('${a.id}')">
       <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
         <span style="font-size:13px;font-weight:600;">${a.icono} ${a.nombre}</span>
-        <span style="font-size:12px;font-weight:700;color:${col}">${pct}%</span>
+        <span style="font-size:12px;font-weight:700;color:${col}">${inspArea.length ? pct+'%' : 'sin datos'}</span>
       </div>
       <div style="height:8px;background:#f1f5f9;border-radius:100px;overflow:hidden;">
         <div style="height:100%;width:${pct}%;background:${col};border-radius:100px;transition:width 0.5s;"></div>
@@ -1408,28 +1452,31 @@ function renderDashboard() {
     </div>`;
   }).join('');
 
-  // NC recientes
+  // NC recientes (datos reales)
   const ncEl = document.getElementById('nc-recientes');
   let allNc = [];
-  AREAS.forEach(a => {
-    a.preguntas.forEach(q => {
-      const ans = (ANSWERS[a.id]||{})[q.id];
-      if(ans && (ans.value==='nc' || ans.value==='bad')) allNc.push({area:a, q, ans});
+  _allInspecciones.forEach(insp => {
+    const resp = insp.respuestas ? Object.values(insp.respuestas) : [];
+    resp.forEach(r => {
+      if ((r.valor||r.value) === 'bad') allNc.push({ insp, texto: r.pregunta_texto, cat: r.categoria });
     });
   });
   if(allNc.length === 0) {
     ncEl.innerHTML = '<div style="text-align:center;padding:24px;color:var(--light);font-size:13px;">🎉 Sin no conformidades registradas</div>';
   } else {
-    ncEl.innerHTML = allNc.slice(0,5).map(({area,q,ans}) => `
-      <div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);align-items:flex-start;">
-        <div style="width:8px;height:8px;border-radius:50%;background:${ans.value==='bad'?'#dc2626':'#d97706'};margin-top:5px;flex-shrink:0;"></div>
+    ncEl.innerHTML = allNc.slice(0,5).map(({insp,texto,cat}) => `
+      <div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);align-items:flex-start;cursor:pointer;" onclick="verHistorialArea('${insp.area_id}')">
+        <div style="width:8px;height:8px;border-radius:50%;background:#dc2626;margin-top:5px;flex-shrink:0;"></div>
         <div style="flex:1;min-width:0;">
-          <div style="font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${q.texto.substring(0,60)}...</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:1px;">${area.icono} ${area.nombre} · ${q.categoria}</div>
+          <div style="font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${(texto||'').substring(0,60)}${(texto||'').length>60?'...':''}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:1px;">${insp.area_icono||'🏭'} ${insp.area_nombre} · ${cat||''}</div>
         </div>
       </div>
     `).join('');
   }
+
+  // Gráficas
+  renderDashboardCharts();
 
   // Quick access
   const qEl = document.getElementById('areas-quick');
@@ -1666,16 +1713,15 @@ function getAreaSVG(id, color, customImg) {
 }
 
 function renderAreaCard(a, compact) {
-  const done = isAreaDone(a);
-  const pct = getAreaPct(a);
-  const totalPregs = a.preguntas.length;
-  const answered = Object.keys(ANSWERS[a.id]||{}).length;
-  const ok = Object.values(ANSWERS[a.id]||{}).filter(x=>x.value==='ok').length;
-  const bad = Object.values(ANSWERS[a.id]||{}).filter(x=>x.value==='bad').length;
-  const pctCumplimiento = answered > 0 ? Math.round((ok/answered)*100) : 0;
-  const colPct = pct===100?'#16a34a':pct>0?'#d97706':'#94a3b8';
-  const colCumpl = pctCumplimiento>=80?'#16a34a':pctCumplimiento>=50?'#d97706':'#dc2626';
-  return `<div class="area-card" onclick="window.open('inspector.html','_blank')">
+  const inspArea = getInspeccionesArea(a.id);
+  const totalInsp = inspArea.length;
+  const ok = inspArea.reduce((s,i)=>s+(i.ok||0),0);
+  const bad = inspArea.reduce((s,i)=>s+(i.bad||0),0);
+  const pctCumplimiento = totalInsp ? Math.round(inspArea.reduce((s,i)=>s+(i.pct_cumplimiento||0),0)/totalInsp) : 0;
+  const ultima = totalInsp ? new Date(inspArea.slice().sort((x,y)=>new Date(y.created_at)-new Date(x.created_at))[0].created_at) : null;
+  const colPct = totalInsp===0?'#94a3b8':pctCumplimiento>=80?'#16a34a':pctCumplimiento>=50?'#d97706':'#dc2626';
+  const colCumpl = colPct;
+  return `<div class="area-card" onclick="verHistorialArea('${a.id}')">
     <div class="area-card-banner" style="background:${a.color};"></div>
     <div class="area-card-img-wrap">
       ${(function(){
@@ -1700,16 +1746,16 @@ function renderAreaCard(a, compact) {
         </div>
       </div>
       <div class="area-card-progress">
-        <div class="area-card-prog-bar"><div class="area-card-prog-fill" style="width:${pct}%;background:${colPct};"></div></div>
-        <div class="area-card-prog-text"><span>${answered} de ${totalPregs} respondidas</span><span style="font-weight:700;color:${colPct}">${pct}%</span></div>
+        <div class="area-card-prog-bar"><div class="area-card-prog-fill" style="width:${pctCumplimiento}%;background:${colPct};"></div></div>
+        <div class="area-card-prog-text"><span>${totalInsp} inspección(es) · ${ultima?('última '+ultima.toLocaleDateString('es-CO',{day:'numeric',month:'short'})):'sin registros'}</span><span style="font-weight:700;color:${colPct}">${pctCumplimiento}%</span></div>
       </div>
       <div class="area-card-stats">
         <div class="area-stat-box"><div class="area-stat-val" style="color:#16a34a">${ok}</div><div class="area-stat-lbl">Cumple</div></div>
         <div class="area-stat-box"><div class="area-stat-val" style="color:#dc2626">${bad}</div><div class="area-stat-lbl">No cumple</div></div>
         <div class="area-stat-box"><div class="area-stat-val" style="color:${colCumpl}">${pctCumplimiento}%</div><div class="area-stat-lbl">Cumplim.</div></div>
       </div>
-      <button class="area-card-btn ${done?'completed':''}" onclick="event.stopPropagation();window.open('inspector.html','_blank')">
-        ▶️ Iniciar inspección
+      <button class="area-card-btn" onclick="event.stopPropagation();verHistorialArea('${a.id}')">
+        📋 Ver historial
       </button>
     </div>
   </div>`;
@@ -2270,6 +2316,7 @@ function doLogin() {
   if(sp) { sp.style.opacity='0'; setTimeout(()=>sp.style.display='none',400); }
   updateUserUI();
   toast('¡Bienvenido, '+found.nombre.split(' ')[0]+'! 👋');
+  cargarInspecciones();
 }
 
 // ── LOGOUT ────────────────────────────────────────────────────────
@@ -2677,7 +2724,7 @@ let _fbListener = null;
 let _allInspecciones = [];
 
 function cargarInspecciones() {
-  if (!SESSION || SESSION.rol !== 'admin') return;
+  if (!SESSION) return;
   document.getElementById('admin-loading').style.display = 'block';
   document.getElementById('admin-empty').style.display = 'none';
   document.getElementById('admin-error').style.display = 'none';
@@ -2709,6 +2756,7 @@ function cargarInspecciones() {
     renderAdminMetrics(_allInspecciones);
     filtrarInspecciones();
     renderTabulacionPreguntas();
+    renderDashboard();
 
   }, (e) => {
     document.getElementById('admin-loading').style.display = 'none';
@@ -2725,7 +2773,7 @@ let _allHallazgos = [];
 let _hallazgosTab = 'abierto';
 
 function cargarHallazgos() {
-  if (!SESSION || SESSION.rol !== 'admin') return;
+  if (!SESSION) return;
   if (_hallazgosListener) db.ref('hallazgos').off('value', _hallazgosListener);
 
   _hallazgosListener = db.ref('hallazgos').on('value', (snapshot) => {
@@ -2839,6 +2887,317 @@ function verDetalleHallazgo(areaId, pregId) {
     ${h.veces_detectado > 1 ? `<div style="margin-top:14px;font-size:11px;color:var(--muted);">Detectado ${h.veces_detectado} veces desde su apertura · última detección: ${h.fecha_ultima_deteccion_display||''}</div>` : ''}
   `;
   openModal('modal-hallazgo-detalle');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// HISTORIAL DE INSPECCIONES POR ÁREA + INFORME MENSUAL
+// ═══════════════════════════════════════════════════════════════
+const MESES_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+function mesKeyDe(fechaISO) {
+  const d = new Date(fechaISO);
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+}
+function mesLabelDe(mesKey) {
+  const [y,m] = mesKey.split('-');
+  return MESES_ES[parseInt(m,10)-1] + ' ' + y;
+}
+
+function getInspeccionesArea(areaId) {
+  return _allInspecciones.filter(i => i.area_id === areaId);
+}
+
+// ── GRÁFICAS DEL DASHBOARD (SVG propio, sin librerías externas) ──
+function renderDashboardCharts() {
+  renderChartPorArea();
+  renderChartDonut();
+  renderChartEvolucion();
+}
+
+function renderChartPorArea() {
+  const el = document.getElementById('chart-por-area');
+  if (!el) return;
+  const datos = AREAS.map(a => {
+    const insp = getInspeccionesArea(a.id);
+    const pct = insp.length ? Math.round(insp.reduce((s,i)=>s+(i.pct_cumplimiento||0),0)/insp.length) : 0;
+    return { label: a.icono + ' ' + a.nombre, pct, n: insp.length };
+  });
+  if (datos.every(d => d.n === 0)) {
+    el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);font-size:12px;">Aún no hay inspecciones registradas.</div>';
+    return;
+  }
+  el.innerHTML = `<div style="display:flex;align-items:flex-end;gap:10px;height:150px;padding:0 4px;">` +
+    datos.map(d => {
+      const h = Math.max(4, d.pct);
+      const col = d.n===0 ? '#e2e8f0' : d.pct>=80?'#16a34a':d.pct>=50?'#d97706':'#dc2626';
+      return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;">
+        <div style="font-size:10px;font-weight:700;color:${col};margin-bottom:3px;">${d.n?d.pct+'%':'—'}</div>
+        <div style="width:100%;max-width:36px;height:${h}%;background:${col};border-radius:5px 5px 0 0;transition:height .4s;"></div>
+      </div>`;
+    }).join('') + `</div>
+    <div style="display:flex;gap:10px;padding:0 4px;margin-top:6px;">` +
+    datos.map(d => `<div style="flex:1;text-align:center;font-size:9px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${d.label}</div>`).join('') +
+    `</div>`;
+}
+
+function renderChartDonut() {
+  const el = document.getElementById('chart-donut');
+  if (!el) return;
+  let ok=0, bad=0;
+  _allInspecciones.forEach(i => { ok += (i.ok||0); bad += (i.bad||0); });
+  const total = ok + bad;
+  if (total === 0) {
+    el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);font-size:12px;">Aún no hay respuestas registradas.</div>';
+    return;
+  }
+  const pctOk = Math.round((ok/total)*100);
+  const R = 52, C = 2*Math.PI*R;
+  const okLen = (ok/total)*C;
+  el.innerHTML = `
+    <div style="position:relative;width:140px;height:140px;">
+      <svg viewBox="0 0 140 140" width="140" height="140" style="transform:rotate(-90deg);">
+        <circle cx="70" cy="70" r="${R}" fill="none" stroke="#fef2f2" stroke-width="16"/>
+        <circle cx="70" cy="70" r="${R}" fill="none" stroke="#dc2626" stroke-width="16" stroke-dasharray="${C}" stroke-dashoffset="0"/>
+        <circle cx="70" cy="70" r="${R}" fill="none" stroke="#16a34a" stroke-width="16" stroke-dasharray="${okLen} ${C-okLen}" stroke-dashoffset="0" stroke-linecap="butt"/>
+      </svg>
+      <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+        <div style="font-size:20px;font-weight:800;color:#16a34a;">${pctOk}%</div>
+        <div style="font-size:9px;color:var(--muted);">CUMPLE</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:14px;justify-content:center;margin-top:10px;font-size:11px;">
+      <div><span style="display:inline-block;width:9px;height:9px;background:#16a34a;border-radius:2px;margin-right:4px;"></span>Cumple (${ok})</div>
+      <div><span style="display:inline-block;width:9px;height:9px;background:#dc2626;border-radius:2px;margin-right:4px;"></span>No cumple (${bad})</div>
+    </div>`;
+}
+
+function renderChartEvolucion() {
+  const el = document.getElementById('chart-evolucion');
+  if (!el) return;
+  const porMes = {};
+  _allInspecciones.forEach(i => {
+    const mk = mesKeyDe(i.created_at);
+    if (!porMes[mk]) porMes[mk] = [];
+    porMes[mk].push(i.pct_cumplimiento||0);
+  });
+  const meses = Object.keys(porMes).sort().slice(-6);
+  if (meses.length === 0) {
+    el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);font-size:12px;">Aún no hay inspecciones registradas.</div>';
+    return;
+  }
+  const puntos = meses.map(mk => Math.round(porMes[mk].reduce((s,v)=>s+v,0)/porMes[mk].length));
+  const W = 600, H = 160, PAD = 30;
+  const stepX = meses.length > 1 ? (W - PAD*2) / (meses.length - 1) : 0;
+  const coords = puntos.map((v,i) => {
+    const x = PAD + i*stepX;
+    const y = H - PAD - (v/100)*(H - PAD*2);
+    return [x,y];
+  });
+  const pathD = coords.map((c,i) => (i===0?'M':'L') + c[0].toFixed(1) + ',' + c[1].toFixed(1)).join(' ');
+  const grid = [0,50,100].map(v => {
+    const y = H - PAD - (v/100)*(H - PAD*2);
+    return `<line x1="${PAD}" y1="${y}" x2="${W-PAD}" y2="${y}" stroke="#f1f5f9" stroke-width="1"/><text x="4" y="${y+4}" font-size="9" fill="#94a3b8">${v}%</text>`;
+  }).join('');
+  const dots = coords.map((c,i) => `<circle cx="${c[0]}" cy="${c[1]}" r="4" fill="#0f4c3a"/><text x="${c[0]}" y="${H-8}" font-size="10" fill="#64748b" text-anchor="middle">${mesLabelDe(meses[i]).split(' ')[0].slice(0,3)}</text><text x="${c[0]}" y="${c[1]-8}" font-size="10" font-weight="700" fill="#0f4c3a" text-anchor="middle">${puntos[i]}%</text>`).join('');
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" style="max-width:100%;">
+    ${grid}
+    <path d="${pathD}" fill="none" stroke="#0f4c3a" stroke-width="2.5"/>
+    ${dots}
+  </svg>`;
+}
+
+function verHistorialArea(areaId) {
+  const area = AREAS.find(a => a.id === areaId);
+  const inspecciones = getInspeccionesArea(areaId).sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+
+  const inspectoresSet = new Set(inspecciones.map(i => i.inspector_nombre || 'Anónimo'));
+  const mesesSet = new Set(inspecciones.map(i => mesKeyDe(i.created_at)));
+  const promedio = inspecciones.length ? Math.round(inspecciones.reduce((s,i)=>s+(i.pct_cumplimiento||0),0)/inspecciones.length) : 0;
+  const colProm = promedio>=80?'#16a34a':promedio>=50?'#d97706':'#dc2626';
+
+  // Agrupar por mes
+  const porMes = {};
+  inspecciones.forEach(i => {
+    const mk = mesKeyDe(i.created_at);
+    if(!porMes[mk]) porMes[mk] = [];
+    porMes[mk].push(i);
+  });
+  const mesesOrdenados = Object.keys(porMes).sort().reverse();
+
+  document.getElementById('historial-area-title').textContent = `${area?area.icono:'🏭'} ${area?area.nombre:areaId} — Historial`;
+
+  document.getElementById('historial-area-body').innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;">
+      <div style="background:#e6f7f2;border-radius:10px;padding:10px;text-align:center;">
+        <div style="font-size:20px;font-weight:800;color:#0f4c3a;">${inspecciones.length}</div>
+        <div style="font-size:9px;font-weight:700;color:#0f4c3a;text-transform:uppercase;">Inspecciones</div>
+      </div>
+      <div style="background:#eff6ff;border-radius:10px;padding:10px;text-align:center;">
+        <div style="font-size:20px;font-weight:800;color:#2563eb;">${inspectoresSet.size}</div>
+        <div style="font-size:9px;font-weight:700;color:#2563eb;text-transform:uppercase;">Inspectores</div>
+      </div>
+      <div style="background:${colProm}18;border-radius:10px;padding:10px;text-align:center;">
+        <div style="font-size:20px;font-weight:800;color:${colProm};">${promedio}%</div>
+        <div style="font-size:9px;font-weight:700;color:${colProm};text-transform:uppercase;">Cumplim. prom.</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+      <button class="btn btn-primary btn-sm" onclick="abrirInformeMensual('${areaId}')">📧 Generar informe mensual</button>
+      <button class="btn btn-outline btn-sm" onclick="window.open('inspector.html','_blank')">🆕 Nueva inspección</button>
+    </div>
+    ${inspecciones.length === 0
+      ? '<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px;">Aún no hay inspecciones registradas para esta área.</div>'
+      : mesesOrdenados.map(mk => {
+          const lista = porMes[mk];
+          const inspectoresMes = [...new Set(lista.map(i=>i.inspector_nombre||'Anónimo'))];
+          return `<div style="margin-bottom:16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <div style="font-size:12px;font-weight:800;color:var(--text);text-transform:uppercase;">📅 ${mesLabelDe(mk)} · ${lista.length} inspección(es)</div>
+              <div style="font-size:10px;color:var(--muted);">👤 ${inspectoresMes.join(', ')}</div>
+            </div>
+            ${lista.map(i => {
+              const col = i.pct_cumplimiento>=80?'#16a34a':i.pct_cumplimiento>=50?'#d97706':'#dc2626';
+              const fecha = i.created_at ? new Date(i.created_at).toLocaleDateString('es-CO',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
+              return `<div style="border:1px solid var(--border);border-radius:9px;padding:9px 12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;gap:8px;">
+                <div style="min-width:0;">
+                  <div style="font-size:12px;font-weight:600;">👤 ${i.inspector_nombre||'Anónimo'} <span style="color:var(--muted);font-weight:400;">· ${i.inspector_cargo||''}</span></div>
+                  <div style="font-size:10px;color:var(--muted);">${fecha}</div>
+                </div>
+                <div style="text-align:right;flex-shrink:0;">
+                  <div style="font-size:14px;font-weight:800;color:${col};">${i.pct_cumplimiento||0}%</div>
+                  <div style="font-size:9px;color:var(--muted);">${i.ok||0}✅ ${i.bad||0}❌</div>
+                </div>
+              </div>`;
+            }).join('')}
+          </div>`;
+        }).join('')
+    }
+  `;
+  openModal('modal-area-historial');
+}
+
+function abrirInformeMensual(areaId) {
+  const area = AREAS.find(a => a.id === areaId);
+  const inspecciones = getInspeccionesArea(areaId);
+  const mesesSet = [...new Set(inspecciones.map(i => mesKeyDe(i.created_at)))].sort().reverse();
+
+  document.getElementById('informe-mensual-title').textContent = `📧 Informe mensual — ${area?area.icono:''} ${area?area.nombre:areaId}`;
+  const selMes = document.getElementById('informe-mes-select');
+  if (mesesSet.length === 0) {
+    selMes.innerHTML = '<option value="">Sin inspecciones registradas</option>';
+  } else {
+    selMes.innerHTML = mesesSet.map(mk => `<option value="${mk}">${mesLabelDe(mk)}</option>`).join('');
+  }
+  selMes.dataset.areaId = areaId;
+  renderInformeMensualPreview();
+  openModal('modal-informe-mensual');
+}
+
+function renderInformeMensualPreview() {
+  const selMes = document.getElementById('informe-mes-select');
+  const areaId = selMes.dataset.areaId;
+  const mesKey = selMes.value;
+  const area = AREAS.find(a => a.id === areaId);
+  const body = document.getElementById('informe-mensual-body');
+
+  if (!mesKey) {
+    body.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px;">No hay inspecciones para generar un informe.</div>';
+    return;
+  }
+
+  const inspecciones = getInspeccionesArea(areaId).filter(i => mesKeyDe(i.created_at) === mesKey);
+  const promedio = inspecciones.length ? Math.round(inspecciones.reduce((s,i)=>s+(i.pct_cumplimiento||0),0)/inspecciones.length) : 0;
+  const totalOk = inspecciones.reduce((s,i)=>s+(i.ok||0),0);
+  const totalBad = inspecciones.reduce((s,i)=>s+(i.bad||0),0);
+  const inspectores = [...new Set(inspecciones.map(i=>i.inspector_nombre||'Anónimo'))];
+
+  const ncEncontradas = [];
+  inspecciones.forEach(i => {
+    const resp = i.respuestas ? Object.values(i.respuestas) : [];
+    resp.forEach(r => {
+      if ((r.valor||r.value) === 'bad') ncEncontradas.push({ texto: r.pregunta_texto, obs: r.observacion, fecha: i.created_at, inspector: i.inspector_nombre });
+    });
+  });
+
+  const col = promedio>=80?'#16a34a':promedio>=50?'#d97706':'#dc2626';
+  window._informeActual = { area, mesKey, inspecciones, promedio, totalOk, totalBad, inspectores, ncEncontradas };
+
+  body.innerHTML = `
+    <div id="informe-preview-content" style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:16px;">
+      <div style="text-align:center;margin-bottom:14px;">
+        <div style="font-size:15px;font-weight:800;">${area?area.icono:''} Informe de Inocuidad — ${area?area.nombre:''}</div>
+        <div style="font-size:12px;color:var(--muted);">${mesLabelDe(mesKey)} · OLEOFLORES S.A.S</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">
+        <div style="background:#f8fafc;border-radius:8px;padding:8px;text-align:center;"><div style="font-size:16px;font-weight:800;">${inspecciones.length}</div><div style="font-size:9px;color:var(--muted);">INSPECCIONES</div></div>
+        <div style="background:${col}18;border-radius:8px;padding:8px;text-align:center;"><div style="font-size:16px;font-weight:800;color:${col};">${promedio}%</div><div style="font-size:9px;color:var(--muted);">CUMPLIM. PROM.</div></div>
+        <div style="background:#fef2f2;border-radius:8px;padding:8px;text-align:center;"><div style="font-size:16px;font-weight:800;color:#dc2626;">${totalBad}</div><div style="font-size:9px;color:var(--muted);">NO CONFORMIDADES</div></div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px;"><strong>Inspectores:</strong> ${inspectores.join(', ')||'—'}</div>
+      <div style="font-size:12px;font-weight:700;margin-bottom:6px;">⚠️ No conformidades encontradas (${ncEncontradas.length})</div>
+      ${ncEncontradas.length === 0
+        ? '<div style="font-size:11px;color:var(--muted);">🎉 Ninguna no conformidad registrada este mes.</div>'
+        : ncEncontradas.map(nc => `<div style="border-left:3px solid #dc2626;padding:6px 10px;margin-bottom:6px;background:#fef2f2;border-radius:0 6px 6px 0;">
+            <div style="font-size:11px;font-weight:600;">${nc.texto}</div>
+            ${nc.obs?`<div style="font-size:10px;color:#92400e;margin-top:2px;">📝 ${nc.obs}</div>`:''}
+            <div style="font-size:9px;color:var(--muted);margin-top:2px;">${new Date(nc.fecha).toLocaleDateString('es-CO')} · ${nc.inspector||''}</div>
+          </div>`).join('')
+      }
+    </div>
+    <div style="margin-top:14px;">
+      <label class="form-label">Email del jefe de área</label>
+      <input type="email" id="informe-email-jefe" placeholder="jefe@oleoflores.com" style="width:100%;font-size:13px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;margin-bottom:10px;" value="${localStorage.getItem('jefe_email_'+areaId)||''}">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-primary btn-sm" onclick="enviarInformePorCorreo()">📧 Enviar por correo</button>
+        <button class="btn btn-sm" style="background:#25D366;color:#fff;border:none;" onclick="enviarInformePorWhatsapp()">💬 Enviar por WhatsApp</button>
+        <button class="btn btn-outline btn-sm" onclick="imprimirInforme()">🖨️ Imprimir / PDF</button>
+      </div>
+    </div>
+  `;
+}
+
+function construirTextoInforme() {
+  const inf = window._informeActual;
+  if (!inf) return '';
+  let txt = `INFORME DE INOCUIDAD — ${inf.area?inf.area.nombre:''}\n${mesLabelDe(inf.mesKey)} · OLEOFLORES S.A.S\n\n`;
+  txt += `Inspecciones realizadas: ${inf.inspecciones.length}\n`;
+  txt += `Cumplimiento promedio: ${inf.promedio}%\n`;
+  txt += `Total Cumple: ${inf.totalOk} · Total No cumple: ${inf.totalBad}\n`;
+  txt += `Inspectores: ${inf.inspectores.join(', ')||'—'}\n\n`;
+  txt += `NO CONFORMIDADES (${inf.ncEncontradas.length}):\n`;
+  if (inf.ncEncontradas.length === 0) {
+    txt += 'Ninguna registrada este mes.\n';
+  } else {
+    inf.ncEncontradas.forEach((nc,idx) => {
+      txt += `${idx+1}. ${nc.texto}\n`;
+      if (nc.obs) txt += `   Obs: ${nc.obs}\n`;
+      txt += `   (${new Date(nc.fecha).toLocaleDateString('es-CO')} · ${nc.inspector||''})\n`;
+    });
+  }
+  return txt;
+}
+
+function enviarInformePorCorreo() {
+  const inf = window._informeActual;
+  if (!inf) return;
+  const email = document.getElementById('informe-email-jefe').value.trim();
+  if (email) localStorage.setItem('jefe_email_'+inf.area.id, email);
+  const subject = `Informe de Inocuidad — ${inf.area?inf.area.nombre:''} — ${mesLabelDe(inf.mesKey)}`;
+  const body = construirTextoInforme();
+  window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
+function enviarInformePorWhatsapp() {
+  const texto = construirTextoInforme();
+  window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, '_blank');
+}
+
+function imprimirInforme() {
+  const content = document.getElementById('informe-preview-content').outerHTML;
+  const w = window.open('', '_blank');
+  w.document.write(`<html><head><title>Informe</title><style>body{font-family:'Segoe UI',sans-serif;padding:20px;}</style></head><body>${content}</body></html>`);
+  w.document.close();
+  w.print();
 }
 
 // ═══════════════════════════════════════════════════════════════
