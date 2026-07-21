@@ -49,6 +49,10 @@ body{background:#0f4c3a;color:var(--text);font-family:'Segoe UI',system-ui,sans-
 .qcard{background:var(--white);border:1px solid var(--border);border-radius:13px;padding:18px;margin-bottom:10px;transition:all .2s;}
 .qcard.nc-on{border-color:#fcd34d;box-shadow:0 0 0 3px rgba(217,119,6,.08);}
 .qcard.bad-on{border-color:#fca5a5;box-shadow:0 0 0 3px rgba(220,38,38,.08);}
+.qcard.pend-on{border-color:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,.10);}
+.pend-badge{background:#fffbeb;color:#92400e;font-size:11px;font-weight:700;padding:6px 10px;border-radius:8px;margin-bottom:10px;display:inline-block;}
+.pend-antes{margin-bottom:10px;}
+.cierre-sec{margin-top:12px;border-top:1.5px dashed #86efac;padding-top:12px;}
 .qhdr{display:flex;gap:10px;margin-bottom:12px;}
 .qnum{width:26px;height:26px;border-radius:50%;background:var(--accent-light);color:var(--accent);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .qcat{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px;}
@@ -475,7 +479,8 @@ const AREAS=[
 
 const NVL={critico:'🔴 Crítico',alto:'🟠 Alto',medio:'🟡 Medio'};
 const NVL_CLS={critico:'nvl-critico',alto:'nvl-alto',medio:'nvl-medio'};
-let CUR=null,ANS={},_pArea=null,_pQ=null,_clicks=0,_timer=null;
+let CUR=null,ANS={},_pArea=null,_pQ=null,_pMode='normal',_clicks=0,_timer=null;
+let PENDIENTES={},CIERRE={};
 
 // FECHA HOY
 document.getElementById('fecha-hoy').textContent=new Date().toLocaleString('es-CO',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
@@ -523,12 +528,17 @@ function startSurvey(id){
   document.getElementById('modal-id').style.display='flex';
 }
 
-function _doStartSurvey(id){
-  CUR=id;ANS={};
+async function _doStartSurvey(id){
+  CUR=id;ANS={};PENDIENTES={};CIERRE={};
   const a=AREAS.find(x=>x.id===id);
   document.getElementById('sh-icon').textContent=a.icono;
   document.getElementById('sh-title').textContent=a.nombre;
   document.getElementById('sh-sub').textContent=NVL[a.nivel]+' · '+a.preguntas.length+' preguntas';
+  try{
+    const snap=await db.ref('hallazgos/'+id).once('value');
+    const data=snap.val()||{};
+    Object.values(data).forEach(h=>{ if(h.estado==='abierto') PENDIENTES[h.pregunta_id]=h; });
+  }catch(e){console.error('Error cargando hallazgos pendientes',e);}
   renderQuestions(a);updateProg(a);
   show('scr-survey');
 }
@@ -550,7 +560,7 @@ function continueToSurvey(){
 }
 
 function volverSelector(){
-  CUR=null;ANS={};
+  CUR=null;ANS={};PENDIENTES={};CIERRE={};
   document.getElementById('chip-back') && (document.getElementById('chip-back').style.display='none');
   
   show('scr-sel');
@@ -587,10 +597,15 @@ function renderQuestions(a){
 
 function renderQ(aid,q,i){
   const ans=(ANS[aid]||{})[q.id],val=ans?ans.value:null;
-  const cc=val==='bad'?'bad-on':'';
+  const pend=PENDIENTES[q.id];
+  const cc=(val==='bad'?'bad-on':'')+(pend&&val!=='ok'?' pend-on':'');
   const ops=[{v:'ok',l:'✅ Cumple',c:val==='ok'?'s-ok':''},{v:'bad',l:'❌ No cumple',c:val==='bad'?'s-bad':''}];
   const showNC=val==='bad';
+  const showCierre=val==='ok'&&pend;
+  const cierre=CIERRE[q.id]||{fotos:[],obs:''};
   return `<div class="qcard ${cc}" id="qc-${q.id}">
+    ${pend?`<div class="pend-badge">⚠️ Pendiente desde ${pend.fecha_apertura_display||''} · detectado ${pend.veces_detectado||1}x</div>
+    ${pend.foto_antes&&pend.foto_antes.length?`<div class="pend-antes"><div class="nc-lbl">📷 Evidencia registrada ("antes")</div><div class="thumbs">${pend.foto_antes.map(f=>`<img class="thumb" src="${f}">`).join('')}</div></div>`:''}`:''}
     <div class="qhdr">
       <div class="qnum">${i+1}</div>
       <div style="flex:1">
@@ -618,6 +633,17 @@ function renderQ(aid,q,i){
       </div>
       <div class="thumbs" id="th-${q.id}">${ans&&ans.fotos?ans.fotos.map(f=>`<img class="thumb" src="${f}">`).join(''):''}</div>
     </div>`:''}
+    ${showCierre?`<div class="cierre-sec">
+      <div class="nc-ttl" style="color:#16a34a;">✅ Cierre de hallazgo pendiente</div>
+      <div class="nc-lbl">Observación de cierre (opcional)</div>
+      <textarea placeholder="Cómo se solucionó..." oninput="saveCierreObs('${q.id}',this.value)">${cierre.obs||''}</textarea>
+      <div class="nc-lbl" style="margin-top:8px;">Foto "después" — evidencia de cierre (obligatoria) *</div>
+      <div class="photo-drop" onclick="trigPhotoCierre('${aid}','${q.id}')">
+        <div style="font-size:22px;margin-bottom:3px;">📷</div>
+        <div style="font-size:11px;color:var(--muted)">Toca para adjuntar foto "después"</div>
+      </div>
+      <div class="thumbs" id="thc-${q.id}">${cierre.fotos.map(f=>`<img class="thumb" src="${f}">`).join('')}</div>
+    </div>`:''}
   </div>`;
 }
 
@@ -635,6 +661,11 @@ function saveNC(aid,qid,field,val){
   ANS[aid][qid][field]=val;
 }
 
+function saveCierreObs(qid,val){
+  if(!CIERRE[qid])CIERRE[qid]={fotos:[],obs:''};
+  CIERRE[qid].obs=val;
+}
+
 function updateProg(a){
   const tot=a.preguntas.length,ans=Object.keys(ANS[a.id]||{}).length,pct=Math.round((ans/tot)*100);
   document.getElementById('prog-fill').style.width=pct+'%';
@@ -643,9 +674,29 @@ function updateProg(a){
 }
 
 // FOTOS
-function trigPhoto(aid,qid){_pArea=aid;_pQ=qid;const i=document.getElementById('file-inp');i.value='';i.click();}
+function trigPhoto(aid,qid){_pArea=aid;_pQ=qid;_pMode='normal';const i=document.getElementById('file-inp');i.value='';i.click();}
+function trigPhotoCierre(aid,qid){_pArea=aid;_pQ=qid;_pMode='cierre';const i=document.getElementById('file-inp');i.value='';i.click();}
 document.getElementById('file-inp').addEventListener('change',function(){
   if(!_pArea||!_pQ||!this.files.length)return;
+  if(_pMode==='cierre'){
+    if(!CIERRE[_pQ])CIERRE[_pQ]={fotos:[],obs:''};
+    const thc=document.getElementById('thc-'+_pQ);
+    Array.from(this.files).forEach(f=>{
+      const r=new FileReader();
+      r.onload=e=>{
+        const img=new Image();
+        img.onload=()=>{
+          const c=document.createElement('canvas');let w=img.width,h=img.height;
+          if(w>800){h=Math.round(h*800/w);w=800;}if(h>800){w=Math.round(w*800/h);h=800;}
+          c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);
+          const d=c.toDataURL('image/jpeg',.7);
+          CIERRE[_pQ].fotos.push(d);
+          if(thc){const el=document.createElement('img');el.src=d;el.className='thumb';thc.appendChild(el);}
+        };img.src=e.target.result;
+      };r.readAsDataURL(f);
+    });
+    return;
+  }
   if(!ANS[_pArea])ANS[_pArea]={};if(!ANS[_pArea][_pQ])ANS[_pArea][_pQ]={};
   if(!ANS[_pArea][_pQ].fotos)ANS[_pArea][_pQ].fotos=[];
   const th=document.getElementById('th-'+_pQ);
@@ -670,6 +721,20 @@ async function enviar(){
   const a=AREAS.find(x=>x.id===CUR),ans=ANS[a.id]||{};
   const falta=a.preguntas.length-Object.keys(ans).length;
   if(falta>0&&!confirm('Faltan '+falta+' pregunta(s). ¿Enviar de todas formas?'))return;
+
+  // Validar cierre de hallazgos pendientes: foto "después" obligatoria
+  for(const q of a.preguntas){
+    const r=ans[q.id];
+    if(r&&r.value==='ok'&&PENDIENTES[q.id]){
+      const fotosCierre=(CIERRE[q.id]&&CIERRE[q.id].fotos)||[];
+      if(fotosCierre.length===0){
+        alert('⚠️ La pregunta "'+q.texto+'" estaba pendiente de un hallazgo anterior. Debes adjuntar una foto "después" para poder cerrarla.');
+        document.getElementById('qc-'+q.id)?.scrollIntoView({behavior:'smooth',block:'center'});
+        return;
+      }
+    }
+  }
+
   const ok=Object.values(ans).filter(x=>x.value==='ok').length;
   const bad=Object.values(ans).filter(x=>x.value==='bad').length;
   const pct=Math.round((ok/a.preguntas.length)*100);
@@ -700,13 +765,58 @@ async function enviar(){
       inspector_cargo:  window.INSPECTOR_CARGO  || '',
       inspector_jefe:   window.INSPECTOR_JEFE   || '',
       pct_cumplimiento:pct,
-      ok,nc,bad,
+      ok,bad,
       total_preguntas:a.preguntas.length,
       respondidas:Object.keys(ans).length,
       created_at:new Date().toISOString(),
       fecha_display:new Date().toLocaleString('es-CO'),
       respuestas
     });
+
+    // Sincronizar hallazgos (No Cumple pendientes) en Firebase
+    const hallazgosRef = db.ref('hallazgos/'+a.id);
+    const nowISO=new Date().toISOString(), nowDisp=new Date().toLocaleString('es-CO');
+    for(const q of a.preguntas){
+      const r=ans[q.id];if(!r)continue;
+      const pend=PENDIENTES[q.id];
+      if(r.value==='bad'){
+        if(pend){
+          await hallazgosRef.child(q.id).update({
+            fecha_ultima_deteccion:nowISO,
+            fecha_ultima_deteccion_display:nowDisp,
+            veces_detectado:(pend.veces_detectado||1)+1,
+            ultima_observacion:r.obs||null,
+            ultima_inspeccion_id:inspeccionId
+          });
+        }else{
+          await hallazgosRef.child(q.id).set({
+            area_id:a.id,area_nombre:a.nombre,
+            pregunta_id:q.id,pregunta_texto:q.texto,categoria:q.cat,nivel:q.nivel,
+            estado:'abierto',
+            fecha_apertura:nowISO,fecha_apertura_display:nowDisp,
+            inspeccion_apertura_id:inspeccionId,
+            analista_apertura:window.INSPECTOR_NOMBRE||'Anónimo',
+            observacion_apertura:r.obs||null,
+            accion_apertura:r.accion||null,
+            foto_antes:r.fotos||[],
+            veces_detectado:1,
+            fecha_ultima_deteccion:nowISO,
+            fecha_ultima_deteccion_display:nowDisp
+          });
+        }
+      }else if(r.value==='ok'&&pend){
+        const fotosCierre=(CIERRE[q.id]&&CIERRE[q.id].fotos)||[];
+        await hallazgosRef.child(q.id).update({
+          estado:'cerrado',
+          fecha_cierre:nowISO,fecha_cierre_display:nowDisp,
+          inspeccion_cierre_id:inspeccionId,
+          analista_cierre:window.INSPECTOR_NOMBRE||'Anónimo',
+          observacion_cierre:(CIERRE[q.id]&&CIERRE[q.id].obs)||null,
+          foto_despues:fotosCierre
+        });
+      }
+    }
+
     toast('☁️ Guardado en Firebase ✅');
   }catch(e){toast('⚠️ Error al guardar: '+e.message);console.error(e);}
 }
