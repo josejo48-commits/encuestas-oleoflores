@@ -676,6 +676,57 @@ body.is-admin hr.admin-only { display: block !important; }
     </div>
   </div>
 
+  <!-- HALLAZGOS ABIERTOS — lo primero que se ve -->
+  <div id="hallazgos-summary" style="background:linear-gradient(135deg,#fff7ed,#fef2f2);border:1.5px solid #fecaca;border-radius:16px;padding:16px;margin-bottom:14px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="font-size:30px;">🚨</div>
+        <div>
+          <div style="font-size:15px;font-weight:800;color:#991b1b;">Hallazgos abiertos pendientes de cierre</div>
+          <div id="hallazgos-summary-sub" style="font-size:12px;color:#7f1d1d;">Cargando...</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div id="hallazgos-summary-count" style="font-size:28px;font-weight:900;color:#dc2626;line-height:1;">0</div>
+        <button class="btn btn-sm" onclick="toggleHallazgosList()" style="background:#fff;border:1px solid #fca5a5;color:#dc2626;">Ver detalle ▾</button>
+      </div>
+    </div>
+    <div id="hallazgos-list-wrap" style="display:none;margin-top:14px;">
+      <div style="display:flex;gap:6px;margin-bottom:10px;">
+        <button class="btn btn-sm" id="tab-hallazgos-abiertos" onclick="setHallazgosTab('abierto')" style="background:#dc2626;color:#fff;border:none;">🚨 Abiertos</button>
+        <button class="btn btn-sm btn-outline" id="tab-hallazgos-cerrados" onclick="setHallazgosTab('cerrado')">✅ Cerrados (con evidencia)</button>
+      </div>
+      <div id="hallazgos-tbody"></div>
+      <div id="hallazgos-empty" style="display:none;text-align:center;padding:20px;color:var(--muted);font-size:12px;">Sin registros en esta vista.</div>
+    </div>
+  </div>
+
+  <!-- TABULACIÓN CUMPLE / NO CUMPLE POR PREGUNTA -->
+  <div id="tabulacion-card" style="background:var(--white);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="font-size:22px;">📊</div>
+        <div>
+          <div style="font-size:14px;font-weight:800;">Cumplimiento por pregunta</div>
+          <div style="font-size:11px;color:var(--muted);">Conteo de ✅ Cumple / ❌ No cumple acumulado, por área</div>
+        </div>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="toggleTabulacion()" id="btn-toggle-tab">Ver tabulación ▾</button>
+    </div>
+    <div id="tabulacion-wrap" style="display:none;">
+      <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
+        <select id="tab-filtro-area" onchange="renderTabulacionPreguntas()" style="font-size:12px;padding:6px 8px;border:1px solid var(--border);border-radius:8px;flex:1;min-width:160px;">
+          <option value="">Todas las áreas</option>
+        </select>
+        <select id="tab-orden" onchange="renderTabulacionPreguntas()" style="font-size:12px;padding:6px 8px;border:1px solid var(--border);border-radius:8px;">
+          <option value="peor">Peor cumplimiento primero</option>
+          <option value="mejor">Mejor cumplimiento primero</option>
+        </select>
+      </div>
+      <div id="tab-tbody"></div>
+    </div>
+  </div>
+
   <!-- Métricas compactas -->
   <div id="admin-metrics" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px;"></div>
 
@@ -718,6 +769,17 @@ body.is-admin hr.admin-only { display: block !important; }
         <button class="modal-close" onclick="closeModal('modal-inspeccion-detalle')">✕</button>
       </div>
       <div class="modal-body" id="detalle-body"></div>
+    </div>
+  </div>
+
+  <!-- Modal detalle hallazgo (antes/después) -->
+  <div class="modal-overlay" id="modal-hallazgo-detalle">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title" id="hallazgo-title">Detalle de hallazgo</div>
+        <button class="modal-close" onclick="closeModal('modal-hallazgo-detalle')">✕</button>
+      </div>
+      <div class="modal-body" id="hallazgo-body"></div>
     </div>
   </div>
 </div>
@@ -2551,6 +2613,7 @@ function cargarInspecciones() {
   document.getElementById('admin-table-wrap').style.display = 'none';
 
   if (_fbListener) db.ref('inspecciones').off('value', _fbListener);
+  cargarHallazgos();
 
   _fbListener = db.ref('inspecciones').on('value', (snapshot) => {
     const data = snapshot.val();
@@ -2564,14 +2627,223 @@ function cargarInspecciones() {
     sel.innerHTML = '<option value="">Todas las áreas</option>' +
       areas.map(a => `<option value="${a}" ${cur===a?'selected':''}>${a}</option>`).join('');
 
+    const areasIdMap = {};
+    _allInspecciones.forEach(i => { areasIdMap[i.area_id] = i.area_nombre; });
+    const selTab = document.getElementById('tab-filtro-area');
+    const curTab = selTab.value;
+    selTab.innerHTML = '<option value="">Todas las áreas</option>' +
+      Object.entries(areasIdMap).sort((a,b)=>a[1].localeCompare(b[1]))
+        .map(([id,nombre]) => `<option value="${id}" ${curTab===id?'selected':''}>${nombre}</option>`).join('');
+
     renderAdminMetrics(_allInspecciones);
     filtrarInspecciones();
+    renderTabulacionPreguntas();
 
   }, (e) => {
     document.getElementById('admin-loading').style.display = 'none';
     document.getElementById('admin-error').style.display = 'block';
     document.getElementById('admin-error').textContent = '⚠️ Error Firebase: ' + e.message;
   });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// HALLAZGOS (No Cumple pendientes entre inspecciones)
+// ═══════════════════════════════════════════════════════════════
+let _hallazgosListener = null;
+let _allHallazgos = [];
+let _hallazgosTab = 'abierto';
+
+function cargarHallazgos() {
+  if (!SESSION || SESSION.rol !== 'admin') return;
+  if (_hallazgosListener) db.ref('hallazgos').off('value', _hallazgosListener);
+
+  _hallazgosListener = db.ref('hallazgos').on('value', (snapshot) => {
+    const data = snapshot.val() || {};
+    const flat = [];
+    Object.values(data).forEach(porArea => {
+      Object.values(porArea || {}).forEach(h => flat.push(h));
+    });
+    _allHallazgos = flat.sort((a,b) => new Date(b.fecha_apertura) - new Date(a.fecha_apertura));
+    renderHallazgosSummary();
+    renderHallazgosTabla();
+  }, (e) => {
+    document.getElementById('hallazgos-summary-sub').textContent = '⚠️ Error cargando hallazgos: ' + e.message;
+  });
+}
+
+function renderHallazgosSummary() {
+  const abiertos = _allHallazgos.filter(h => h.estado === 'abierto');
+  document.getElementById('hallazgos-summary-count').textContent = abiertos.length;
+  if (abiertos.length === 0) {
+    document.getElementById('hallazgos-summary-sub').textContent = '✅ No hay hallazgos pendientes de cierre en este momento.';
+    document.getElementById('hallazgos-summary').style.borderColor = '#bbf7d0';
+    document.getElementById('hallazgos-summary').style.background = 'linear-gradient(135deg,#f0fdf4,#f0fdf4)';
+  } else {
+    const masAntiguo = abiertos.reduce((older, h) => new Date(h.fecha_apertura) < new Date(older.fecha_apertura) ? h : older, abiertos[0]);
+    const dias = Math.max(0, Math.floor((Date.now() - new Date(masAntiguo.fecha_apertura)) / 86400000));
+    document.getElementById('hallazgos-summary-sub').textContent =
+      abiertos.length + ' pregunta(s) marcada(s) "No Cumple" sin cerrar · la más antigua lleva ' + dias + ' día(s) abierta (' + masAntiguo.area_nombre + ')';
+    document.getElementById('hallazgos-summary').style.borderColor = '#fecaca';
+    document.getElementById('hallazgos-summary').style.background = 'linear-gradient(135deg,#fff7ed,#fef2f2)';
+  }
+}
+
+function toggleHallazgosList() {
+  const w = document.getElementById('hallazgos-list-wrap');
+  w.style.display = w.style.display === 'none' ? 'block' : 'none';
+}
+
+function setHallazgosTab(tab) {
+  _hallazgosTab = tab;
+  document.getElementById('tab-hallazgos-abiertos').className = 'btn btn-sm' + (tab==='abierto' ? '' : ' btn-outline');
+  document.getElementById('tab-hallazgos-abiertos').style.cssText = tab==='abierto' ? 'background:#dc2626;color:#fff;border:none;' : '';
+  document.getElementById('tab-hallazgos-cerrados').className = 'btn btn-sm' + (tab==='cerrado' ? '' : ' btn-outline');
+  document.getElementById('tab-hallazgos-cerrados').style.cssText = tab==='cerrado' ? 'background:#16a34a;color:#fff;border:none;' : '';
+  renderHallazgosTabla();
+}
+
+function renderHallazgosTabla() {
+  const list = _allHallazgos.filter(h => h.estado === _hallazgosTab);
+  const tbody = document.getElementById('hallazgos-tbody');
+  const empty = document.getElementById('hallazgos-empty');
+  if (list.length === 0) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  tbody.innerHTML = list.map(h => {
+    if (_hallazgosTab === 'abierto') {
+      const dias = Math.max(0, Math.floor((Date.now() - new Date(h.fecha_apertura)) / 86400000));
+      return `<div style="background:#fff;border:1px solid #fecaca;border-radius:10px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:10px;cursor:pointer;" onclick="verDetalleHallazgo('${h.area_id}','${h.pregunta_id}')">
+        <div style="min-width:0;">
+          <div style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;">${h.area_nombre} · ${h.categoria||''}</div>
+          <div style="font-size:12px;font-weight:600;color:var(--text);">${h.pregunta_texto}</div>
+          <div style="font-size:10px;color:#dc2626;margin-top:2px;">Abierto desde ${h.fecha_apertura_display||''} · ${dias} día(s) · detectado ${h.veces_detectado||1}x</div>
+        </div>
+        <div style="font-size:16px;color:var(--light);flex-shrink:0;">›</div>
+      </div>`;
+    } else {
+      return `<div style="background:#fff;border:1px solid #bbf7d0;border-radius:10px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:10px;cursor:pointer;" onclick="verDetalleHallazgo('${h.area_id}','${h.pregunta_id}')">
+        <div style="min-width:0;">
+          <div style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;">${h.area_nombre} · ${h.categoria||''}</div>
+          <div style="font-size:12px;font-weight:600;color:var(--text);">${h.pregunta_texto}</div>
+          <div style="font-size:10px;color:#16a34a;margin-top:2px;">✅ Cerrado ${h.fecha_cierre_display||''} por ${h.analista_cierre||''}</div>
+        </div>
+        <div style="font-size:16px;color:var(--light);flex-shrink:0;">›</div>
+      </div>`;
+    }
+  }).join('');
+}
+
+function verDetalleHallazgo(areaId, pregId) {
+  const h = _allHallazgos.find(x => x.area_id === areaId && x.pregunta_id === pregId);
+  if (!h) return;
+  document.getElementById('hallazgo-title').textContent = h.pregunta_texto;
+  const fotosAntes = h.foto_antes || [];
+  const fotosDespues = h.foto_despues || [];
+  const imgGrid = (fotos) => fotos.length
+    ? `<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;">${fotos.map(f=>`<img src="${f}" style="width:100%;border-radius:8px;border:1px solid var(--border);object-fit:cover;">`).join('')}</div>`
+    : `<div style="font-size:11px;color:var(--muted);text-align:center;padding:16px;background:#f8fafc;border-radius:8px;">Sin fotos</div>`;
+
+  document.getElementById('hallazgo-body').innerHTML = `
+    <div style="margin-bottom:14px;">
+      <span class="badge" style="background:${h.estado==='abierto'?'#fef2f2':'#f0fdf4'};color:${h.estado==='abierto'?'#dc2626':'#16a34a'};">${h.estado==='abierto'?'🚨 Abierto':'✅ Cerrado'}</span>
+      <span style="font-size:11px;color:var(--muted);margin-left:8px;">${h.area_nombre} · ${h.categoria||''}</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#991b1b;margin-bottom:6px;">📷 ANTES — al detectarse (${h.fecha_apertura_display||''})</div>
+        ${imgGrid(fotosAntes)}
+        ${h.observacion_apertura ? `<div style="background:#fffbeb;border-radius:8px;padding:8px 10px;font-size:11px;color:#92400e;margin-top:8px;">📝 ${h.observacion_apertura}</div>` : ''}
+        <div style="font-size:10px;color:var(--muted);margin-top:6px;">Registrado por ${h.analista_apertura||'—'}</div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#166534;margin-bottom:6px;">📷 DESPUÉS — al cerrarse ${h.fecha_cierre_display?('('+h.fecha_cierre_display+')'):''}</div>
+        ${h.estado==='cerrado' ? imgGrid(fotosDespues) : `<div style="font-size:11px;color:var(--muted);text-align:center;padding:16px;background:#f8fafc;border-radius:8px;">Aún sin cerrar</div>`}
+        ${h.observacion_cierre ? `<div style="background:#f0fdf4;border-radius:8px;padding:8px 10px;font-size:11px;color:#166534;margin-top:8px;">📝 ${h.observacion_cierre}</div>` : ''}
+        ${h.estado==='cerrado' ? `<div style="font-size:10px;color:var(--muted);margin-top:6px;">Cerrado por ${h.analista_cierre||'—'}</div>` : ''}
+      </div>
+    </div>
+    ${h.veces_detectado > 1 ? `<div style="margin-top:14px;font-size:11px;color:var(--muted);">Detectado ${h.veces_detectado} veces desde su apertura · última detección: ${h.fecha_ultima_deteccion_display||''}</div>` : ''}
+  `;
+  openModal('modal-hallazgo-detalle');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TABULACIÓN: Cumple / No cumple por pregunta y área
+// ═══════════════════════════════════════════════════════════════
+function toggleTabulacion() {
+  const w = document.getElementById('tabulacion-wrap');
+  const abrir = w.style.display === 'none';
+  w.style.display = abrir ? 'block' : 'none';
+  document.getElementById('btn-toggle-tab').textContent = abrir ? 'Ocultar tabulación ▴' : 'Ver tabulación ▾';
+  if (abrir) renderTabulacionPreguntas();
+}
+
+function calcularTabulacionPreguntas(areaId) {
+  const map = {};
+  _allInspecciones.forEach(insp => {
+    if (areaId && insp.area_id !== areaId) return;
+    const respuestas = insp.respuestas || {};
+    Object.entries(respuestas).forEach(([qid, r]) => {
+      const key = insp.area_id + '|' + qid;
+      if (!map[key]) {
+        map[key] = {
+          area_id: insp.area_id, area_nombre: insp.area_nombre,
+          pregunta_texto: r.pregunta_texto, categoria: r.categoria, nivel: r.nivel,
+          ok: 0, bad: 0, total: 0
+        };
+      }
+      if (r.valor === 'ok') map[key].ok++;
+      else if (r.valor === 'bad') map[key].bad++;
+      map[key].total++;
+    });
+  });
+  return Object.values(map);
+}
+
+function renderTabulacionPreguntas() {
+  const wrap = document.getElementById('tabulacion-wrap');
+  if (!wrap || wrap.style.display === 'none') return; // no renderizar si está oculto (ahorra trabajo)
+
+  const areaId = document.getElementById('tab-filtro-area').value;
+  const orden = document.getElementById('tab-orden').value;
+  let rows = calcularTabulacionPreguntas(areaId);
+
+  rows.sort((a, b) => {
+    if (a.area_nombre !== b.area_nombre) return a.area_nombre.localeCompare(b.area_nombre);
+    const pctA = a.total ? a.ok / a.total : 0;
+    const pctB = b.total ? b.ok / b.total : 0;
+    return orden === 'mejor' ? (pctB - pctA) : (pctA - pctB);
+  });
+
+  const tbody = document.getElementById('tab-tbody');
+  if (rows.length === 0) {
+    tbody.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);font-size:12px;">Sin datos aún para esta selección.</div>';
+    return;
+  }
+
+  let lastArea = null;
+  tbody.innerHTML = rows.map(row => {
+    const pct = row.total ? Math.round((row.ok / row.total) * 100) : 0;
+    const color = pct >= 80 ? '#16a34a' : pct >= 50 ? '#d97706' : '#dc2626';
+    const areaHeader = row.area_nombre !== lastArea
+      ? `<div style="font-size:11px;font-weight:800;color:var(--text);text-transform:uppercase;letter-spacing:.4px;margin:${lastArea ? '14px' : '0'} 0 6px;padding-top:${lastArea ? '10px' : '0'};border-top:${lastArea ? '1px solid var(--border)' : 'none'};">${row.area_nombre}</div>`
+      : '';
+    lastArea = row.area_nombre;
+    return areaHeader + `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f1f5f9;">
+      <div style="min-width:0;flex:1;">
+        <div style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;">${row.categoria || ''}</div>
+        <div style="font-size:12px;font-weight:600;color:var(--text);">${row.pregunta_texto}</div>
+      </div>
+      <div style="display:flex;gap:14px;align-items:center;flex-shrink:0;">
+        <div style="text-align:center;"><div style="font-size:14px;font-weight:800;color:#16a34a;">${row.ok}</div><div style="font-size:8px;color:var(--muted);">CUMPLE</div></div>
+        <div style="text-align:center;"><div style="font-size:14px;font-weight:800;color:#dc2626;">${row.bad}</div><div style="font-size:8px;color:var(--muted);">NO CUMPLE</div></div>
+        <div style="text-align:center;min-width:44px;"><div style="font-size:14px;font-weight:800;color:${color};">${pct}%</div><div style="font-size:8px;color:var(--muted);">CUMPLIM.</div></div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function renderAdminMetrics(list) {
